@@ -129,68 +129,77 @@ def bar_chart(series: list[tuple[str, list[float]]], labels: list[str],
     total_w = n_groups * group_w + 60
     all_vals = [v for _, vals in series for v in vals]
     max_val = max(all_vals) * 1.1 if all_vals else 1
-    chart_h = height - 40  # reserve bottom for labels
 
     COLORS = ["#00d4aa", "#818cf8", "#f59e0b", "#ef4444", "#34d399", "#f472b6"]
+
+    # Reserve space: legend at top (20px), x-axis labels at bottom (24px)
+    LEGEND_H = 20
+    X_LABEL_H = 24
+    PAD_L = 50   # left margin for y-axis labels
+    PAD_TOP = LEGEND_H + 8   # top of plot area
+    plot_h = height - PAD_TOP - X_LABEL_H  # usable bar height
+
+    total_h = height
     SVG_LINES = []
     SVG_LINES.append(
-        f'<svg width="{total_w}" height="{height}" viewBox="0 0 {total_w} {height}" '
+        f'<svg width="{total_w}" height="{total_h}" viewBox="0 0 {total_w} {total_h}" '
         f'class="bar-chart" font-family="\'Inter\',sans-serif" font-size="10">'
     )
 
-    # Y-axis gridlines
+    # Legend row — sits above plot area, never overlaps bars
+    for si, (sname, _) in enumerate(series):
+        color = COLORS[si % len(COLORS)]
+        lx = PAD_L + si * 140
+        SVG_LINES.append(
+            f'<rect x="{lx}" y="4" width="10" height="10" rx="2" fill="{color}"/>'
+            f'<text x="{lx+14}" y="13" fill="#8892aa" font-size="10">{sname}</text>'
+        )
+
+    # Y-axis gridlines (5 lines inside the plot area)
     for i in range(5):
-        y = 10 + (chart_h - 10) * i / 4
+        y = PAD_TOP + plot_h * i / 4
         val = max_val * (1 - i / 4)
         SVG_LINES.append(
-            f'<line x1="50" y1="{y:.1f}" x2="{total_w-5}" y2="{y:.1f}" '
+            f'<line x1="{PAD_L}" y1="{y:.1f}" x2="{total_w-5}" y2="{y:.1f}" '
             f'stroke="#1e2533" stroke-width="1"/>'
-            f'<text x="46" y="{y+3:.1f}" text-anchor="end" fill="#6b7a99">{val:.0f}</text>'
+            f'<text x="{PAD_L-4}" y="{y+3:.1f}" text-anchor="end" fill="#6b7a99">{val:.0f}</text>'
         )
 
     # Bars
     for gi, label in enumerate(labels):
-        gx = 54 + gi * group_w
+        gx = PAD_L + 4 + gi * group_w
         for si, (sname, svals) in enumerate(series):
             val = svals[gi] if gi < len(svals) else 0
-            bh = int((val / max_val) * (chart_h - 10))
+            bh = int((val / max_val) * plot_h)
             bx = gx + si * (bar_w + 2)
-            by = 10 + (chart_h - 10) - bh
+            by = PAD_TOP + plot_h - bh
             color = COLORS[si % len(COLORS)]
             SVG_LINES.append(
                 f'<rect x="{bx}" y="{by}" width="{bar_w}" height="{bh}" '
                 f'rx="3" fill="{color}" opacity="0.9">'
                 f'<title>{sname}: {val:.1f}</title></rect>'
             )
-            # value label on top
-            if bh > 18:
+            # Value label on bar top (only if bar is tall enough)
+            if bh > 22:
                 SVG_LINES.append(
-                    f'<text x="{bx+bar_w//2}" y="{by-3}" text-anchor="middle" '
+                    f'<text x="{bx + bar_w // 2}" y="{by - 3}" text-anchor="middle" '
                     f'fill="{color}" font-size="9">{val:.0f}</text>'
                 )
 
-        # Group label
+        # X-axis group label
         label_x = gx + (n_series * (bar_w + 2)) / 2 - 1
+        label_y = PAD_TOP + plot_h + X_LABEL_H - 6
         SVG_LINES.append(
-            f'<text x="{label_x:.1f}" y="{height-4}" text-anchor="middle" '
+            f'<text x="{label_x:.1f}" y="{label_y}" text-anchor="middle" '
             f'fill="#8892aa" font-size="10">{label}</text>'
         )
 
-    # Y axis label
+    # Y-axis label (rotated)
+    mid_y = PAD_TOP + plot_h / 2
     SVG_LINES.append(
-        f'<text x="10" y="{height//2}" text-anchor="middle" fill="#6b7a99" '
-        f'font-size="10" transform="rotate(-90,10,{height//2})">{ylabel}</text>'
+        f'<text x="10" y="{mid_y:.0f}" text-anchor="middle" fill="#6b7a99" '
+        f'font-size="10" transform="rotate(-90,10,{mid_y:.0f})">{ylabel}</text>'
     )
-
-    # Legend
-    legend_x = 54
-    for si, (sname, _) in enumerate(series):
-        color = COLORS[si % len(COLORS)]
-        lx = legend_x + si * 130
-        SVG_LINES.append(
-            f'<rect x="{lx}" y="2" width="10" height="10" rx="2" fill="{color}"/>'
-            f'<text x="{lx+14}" y="11" fill="#8892aa" font-size="10">{sname}</text>'
-        )
 
     SVG_LINES.append("</svg>")
     return "\n".join(SVG_LINES)
@@ -243,12 +252,15 @@ def scatter_svg(points: list[tuple[float, float, str]], xlabel: str, ylabel: str
             f'<circle cx="{px(x):.1f}" cy="{py(y):.1f}" r="5" fill="{color}" '
             f'opacity="0.8"><title>{label}</title></circle>'
         )
-    # Axes labels
+    # Axes labels (each appended separately — never concatenate two SVG elements into one call)
     lines.append(
-        f'<text x="{(width+pad_l)//2}" y="{height-2}" text-anchor="middle" '
+        f'<text x="{(width + pad_l) // 2}" y="{height - 2}" text-anchor="middle" '
         f'fill="#8892aa" font-size="10">{xlabel}</text>'
-        f'<text x="10" y="{height//2}" text-anchor="middle" fill="#8892aa" '
-        f'font-size="10" transform="rotate(-90,10,{height//2})">{ylabel}</text>'
+    )
+    mid_y = (height - pad_b) // 2
+    lines.append(
+        f'<text x="10" y="{mid_y}" text-anchor="middle" fill="#8892aa" '
+        f'font-size="10" transform="rotate(-90,10,{mid_y})">{ylabel}</text>'
     )
     lines.append("</svg>")
     return "\n".join(lines)
@@ -273,12 +285,10 @@ def render_html(models: list[dict], aggs: list[dict]) -> str:
     for m, ag in zip(models, aggs):
         passed = m["score"]["passed"]
         total  = m["score"]["total"]
-        ts = m["timestamp"][:10] if m["timestamp"] else "—"
         cards_html.append(f"""
         <div class="card">
           <div class="card-header">
             <span class="model-name">{m['model']}</span>
-            <span class="card-date">{ts}</span>
           </div>
           <div class="card-body">
             <div class="donut-wrap">
@@ -404,36 +414,6 @@ def render_html(models: list[dict], aggs: list[dict]) -> str:
 
     tg_chart = bar_chart(tg_series, categories, "tok/s", height=200, bar_w=max(18, 40 // max(n,1)))
     pp_chart = bar_chart(pp_series, categories, "tok/s", height=200, bar_w=max(18, 40 // max(n,1)))
-
-    # ── Wall time per exercise chart ───────────────────────────────────────
-    wall_series = []
-    ex_labels = [str(ex["id"]) for ex in exercises]
-    for m in models:
-        lkp = lookup[m["model"]]
-        vals = [lkp[ex["id"]]["metrics"]["total_wall_time_ms"] / 1000
-                if ex["id"] in lkp else 0
-                for ex in exercises]
-        wall_series.append((m["model"], vals))
-
-    wall_chart = bar_chart(wall_series, ex_labels, "seconds", height=220,
-                           bar_w=max(6, 500 // max(len(exercises), 1)))
-
-    # ── Scatter: wall time vs gen tokens ──────────────────────────────────
-    scatter_plots = []
-    for m in models:
-        pts = [
-            (r["metrics"]["gen_tokens"],
-             r["metrics"]["total_wall_time_ms"] / 1000,
-             f'{r["category"]}: {r["description"]}')
-            for r in m["results"]
-            if r["metrics"]["gen_tokens"] > 0
-        ]
-        scatter_plots.append((m["model"], scatter_svg(pts, "gen tokens", "wall time (s)")))
-
-    scatter_html = "".join(
-        f'<div class="scatter-item"><div class="chart-label">{name}</div>{svg}</div>'
-        for name, svg in scatter_plots
-    )
 
     # ── Category accuracy table ────────────────────────────────────────────
     cat_table_rows = []
@@ -575,7 +555,7 @@ def render_html(models: list[dict], aggs: list[dict]) -> str:
     margin: 0 auto;
     padding: 36px 40px 80px;
   }}
-  section {{ margin-bottom: 52px; }}
+  section {{ margin-bottom: 52px; scroll-margin-top: 80px; }}
   section + section {{ border-top: 1px solid var(--border); padding-top: 44px; }}
 
   h2 {{
@@ -587,6 +567,7 @@ def render_html(models: list[dict], aggs: list[dict]) -> str:
     color: var(--muted);
     margin-bottom: 20px;
   }}
+
   h2 span {{ color: var(--accent); margin-right: 8px; }}
 
   /* ── Cards ── */
@@ -617,7 +598,7 @@ def render_html(models: list[dict], aggs: list[dict]) -> str:
     color: #e2e8f0;
     word-break: break-all;
   }}
-  .card-date {{ font-size: 11px; color: var(--muted); white-space: nowrap; }}
+
   .card-body {{
     display: flex;
     gap: 20px;
@@ -644,8 +625,14 @@ def render_html(models: list[dict], aggs: list[dict]) -> str:
   .stat-unit {{ font-size: 10px; color: var(--muted); font-weight: 400; }}
 
   /* ── Tables ── */
-  .table-wrap {{ overflow-x: auto; }}
+  /* overflow-x: clip lets sticky positioning work (unlike auto/scroll) */
+  .table-wrap {{ overflow-x: clip; }}
+  /* Fallback for browsers that don't support clip: the table is still readable */
+  @supports not (overflow-x: clip) {{
+    .table-wrap {{ overflow-x: auto; }}
+  }}
   table {{ width: 100%; border-collapse: collapse; }}
+  .speed-table {{ min-width: 700px; width: auto; }}
   th, td {{
     padding: 8px 12px;
     text-align: left;
@@ -660,7 +647,25 @@ def render_html(models: list[dict], aggs: list[dict]) -> str:
     text-transform: uppercase;
     letter-spacing: .5px;
     background: var(--surface);
-    position: sticky; top: 61px;
+  }}
+  /* Sticky headers — only works when table is not inside overflow:auto wrapper.
+     We give each table its own scrollable wrapper so sticky can work. */
+  .results-table th {{
+    position: sticky;
+    top: 72px;
+  }}
+  .cat-table th {{
+    position: sticky;
+    top: 72px;
+  }}
+  .speed-table thead tr:first-child th {{
+    position: sticky;
+    top: 72px;
+  }}
+  /* Speed table second sub-header row — sits ~34px below the first row */
+  .speed-table thead tr:nth-child(2) th {{
+    position: sticky;
+    top: 106px;
   }}
   tr:hover td {{ background: rgba(255,255,255,0.02); }}
 
@@ -711,11 +716,20 @@ def render_html(models: list[dict], aggs: list[dict]) -> str:
   .speed-table th {{ text-align: center; }}
   .speed-table td {{ text-align: right; font-family: var(--font-mono); font-size: 13px; }}
   .speed-table .model-name-cell {{ text-align: left; font-weight: 600; color: #e2e8f0; }}
-  .speed-table thead tr:first-child th {{ background: var(--surface); }}
+  .speed-table thead tr:first-child th {{
+    background: var(--surface);
+    border-bottom: 1px solid var(--border2);
+  }}
   .speed-table thead tr:nth-child(2) th {{
-    background: color-mix(in srgb, var(--surface) 80%, black);
+    background: #111622;
     font-size: 10px;
     color: var(--muted);
+  }}
+  /* The rowspan="2" Model cell covers both header rows */
+  .speed-table th[rowspan] {{
+    vertical-align: middle;
+    background: var(--surface);
+    z-index: 2;
   }}
 
   /* Charts */
@@ -742,32 +756,6 @@ def render_html(models: list[dict], aggs: list[dict]) -> str:
     margin-bottom: 14px;
   }}
   .bar-chart {{ display: block; max-width: 100%; }}
-  .scatter-row {{
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
-    gap: 16px;
-  }}
-  .scatter-item {{
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 20px;
-  }}
-  .chart-label {{
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--muted);
-    margin-bottom: 10px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-  }}
-  .wall-chart-box {{
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 20px;
-    overflow-x: auto;
-  }}
   footer {{
     text-align: center;
     color: var(--muted);
@@ -787,7 +775,6 @@ def render_html(models: list[dict], aggs: list[dict]) -> str:
     <a href="#summary">Summary</a>
     <a href="#accuracy">Accuracy</a>
     <a href="#speed">Speed</a>
-    <a href="#timing">Timing</a>
     <a href="#exercises">Exercises</a>
   </nav>
 </header>
@@ -810,8 +797,7 @@ def render_html(models: list[dict], aggs: list[dict]) -> str:
     <h2><span>03</span>Speed Stats</h2>
     <div class="table-wrap">{speed_table_html}</div>
 
-    <br>
-    <div class="charts-row">
+    <div class="charts-row" style="margin-top:24px">
       <div class="chart-box">
         <div class="chart-title">Token Generation Speed by Category (tok/s)</div>
         {tg_chart}
@@ -823,23 +809,8 @@ def render_html(models: list[dict], aggs: list[dict]) -> str:
     </div>
   </section>
 
-  <section id="timing">
-    <h2><span>04</span>Wall Time per Exercise</h2>
-    <div class="wall-chart-box">
-      <div class="chart-title">Total wall time per exercise (seconds) — hover bars for details</div>
-      {wall_chart}
-    </div>
-    <br>
-    <div class="scatter-row">
-      {scatter_html}
-    </div>
-    <p style="font-size:11px;color:var(--muted);margin-top:12px;font-family:var(--font-mono)">
-      Scatter: gen tokens vs wall time. Dots coloured by category. Hover for exercise name.
-    </p>
-  </section>
-
   <section id="exercises">
-    <h2><span>05</span>Exercise Detail</h2>
+    <h2><span>04</span>Exercise Detail</h2>
     <div class="table-wrap">{table_html}</div>
   </section>
 
