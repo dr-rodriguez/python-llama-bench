@@ -120,89 +120,166 @@ def donut(passed: int, total: int, size: int = 80) -> str:
 </svg>"""
 
 
-def bar_chart(series: list[tuple[str, list[float]]], labels: list[str],
-              ylabel: str, height: int = 180, bar_w: int = 22, gap: int = 8) -> str:
-    """Grouped vertical bar chart returned as inline SVG."""
-    n_groups = len(labels)
-    n_series = len(series)
-    group_w = n_series * (bar_w + 2) + gap
-    total_w = n_groups * group_w + 60
-    all_vals = [v for _, vals in series for v in vals]
-    max_val = max(all_vals) * 1.1 if all_vals else 1
+def bar_chart(
+    series: list[tuple[str, list[tuple[float, float]]]],
+    labels: list[str],
+    ylabel: str,
+    height: int = 180,
+    bar_w: int = 22,
+    gap: int = 8,
+) -> str:
+    """
+    Grouped vertical bar chart with optional error bars.
 
-    COLORS = ["#00d4aa", "#818cf8", "#f59e0b", "#ef4444", "#34d399", "#f472b6"]
+    series: list of (name, [(median, stdev), ...])
+            stdev=0 draws no error bar.
+    labels: x-axis group labels (one per group).
+    """
+    COLORS = [
+        "#00d4aa",  # teal
+        "#818cf8",  # indigo
+        "#f59e0b",  # amber
+        "#f472b6",  # pink
+        "#34d399",  # emerald
+        "#60a5fa",  # sky blue
+        "#fb923c",  # orange
+        "#a78bfa",  # violet
+        "#4ade80",  # green
+        "#f87171",  # coral red
+    ]
 
-    # Reserve space: legend at top (20px), x-axis labels at bottom (24px)
-    LEGEND_H = 20
+    # Estimate legend layout: each item is swatch(10) + gap(4) + ~8px/char text
+    LEGEND_ITEM_W = 160          # px reserved per legend item in a row
+    LEGEND_ROW_H  = 18           # px per legend row
+    ITEMS_PER_ROW = max(1, 520 // LEGEND_ITEM_W)   # how many fit per row
+    legend_rows   = math.ceil(len(series) / ITEMS_PER_ROW)
+    LEGEND_H      = legend_rows * LEGEND_ROW_H + 6  # total legend height
+
     X_LABEL_H = 24
-    PAD_L = 50   # left margin for y-axis labels
-    PAD_TOP = LEGEND_H + 8   # top of plot area
-    plot_h = height - PAD_TOP - X_LABEL_H  # usable bar height
+    PAD_L     = 50
+    PAD_TOP   = LEGEND_H + 8
+    plot_h    = height - PAD_TOP - X_LABEL_H
 
+    n_groups  = len(labels)
+    n_series  = len(series)
+    group_w   = n_series * (bar_w + 2) + gap
+    bar_area_w = n_groups * group_w + PAD_L + 10
+
+    # Legend needs enough width for ITEMS_PER_ROW items
+    legend_area_w = PAD_L + ITEMS_PER_ROW * LEGEND_ITEM_W
+    total_w = max(bar_area_w, legend_area_w)
     total_h = height
-    SVG_LINES = []
-    SVG_LINES.append(
+
+    all_medians = [pt[0] for _, pts in series for pt in pts]
+    all_stdevs  = [pt[1] for _, pts in series for pt in pts]
+    max_val = max((m + s) for m, s in zip(all_medians, all_stdevs)) * 1.12 if all_medians else 1
+
+    S = []
+    S.append(
         f'<svg width="{total_w}" height="{total_h}" viewBox="0 0 {total_w} {total_h}" '
         f'class="bar-chart" font-family="\'Inter\',sans-serif" font-size="10">'
     )
 
-    # Legend row — sits above plot area, never overlaps bars
+    # ── Legend (wraps into rows) ──────────────────────────────────────────
     for si, (sname, _) in enumerate(series):
-        color = COLORS[si % len(COLORS)]
-        lx = PAD_L + si * 140
-        SVG_LINES.append(
-            f'<rect x="{lx}" y="4" width="10" height="10" rx="2" fill="{color}"/>'
-            f'<text x="{lx+14}" y="13" fill="#8892aa" font-size="10">{sname}</text>'
+        color  = COLORS[si % len(COLORS)]
+        row    = si // ITEMS_PER_ROW
+        col    = si %  ITEMS_PER_ROW
+        lx     = PAD_L + col * LEGEND_ITEM_W
+        ly_top = row * LEGEND_ROW_H + 4
+        # Swatch
+        S.append(f'<rect x="{lx}" y="{ly_top}" width="10" height="10" rx="2" fill="{color}"/>')
+        # Label — truncate long names with ellipsis to fit within the reserved slot
+        display = sname if len(sname) <= 22 else sname[:20] + "…"
+        S.append(
+            f'<text x="{lx+14}" y="{ly_top+9}" fill="#8892aa" font-size="10"'
+            f' dominant-baseline="auto">{display}</text>'
         )
+        # Full name in title for hover tooltip
+        if display != sname:
+            S.append(f'<title>{sname}</title>')
 
-    # Y-axis gridlines (5 lines inside the plot area)
+    # ── Y-axis gridlines ──────────────────────────────────────────────────
     for i in range(5):
-        y = PAD_TOP + plot_h * i / 4
+        y   = PAD_TOP + plot_h * i / 4
         val = max_val * (1 - i / 4)
-        SVG_LINES.append(
+        S.append(
             f'<line x1="{PAD_L}" y1="{y:.1f}" x2="{total_w-5}" y2="{y:.1f}" '
             f'stroke="#1e2533" stroke-width="1"/>'
             f'<text x="{PAD_L-4}" y="{y+3:.1f}" text-anchor="end" fill="#6b7a99">{val:.0f}</text>'
         )
 
-    # Bars
+    # ── Bars + error bars ─────────────────────────────────────────────────
     for gi, label in enumerate(labels):
         gx = PAD_L + 4 + gi * group_w
-        for si, (sname, svals) in enumerate(series):
-            val = svals[gi] if gi < len(svals) else 0
-            bh = int((val / max_val) * plot_h)
-            bx = gx + si * (bar_w + 2)
-            by = PAD_TOP + plot_h - bh
+        for si, (sname, pts) in enumerate(series):
+            median_val, stdev_val = pts[gi] if gi < len(pts) else (0, 0)
+            bh    = int((median_val / max_val) * plot_h)
+            bx    = gx + si * (bar_w + 2)
+            by    = PAD_TOP + plot_h - bh
             color = COLORS[si % len(COLORS)]
-            SVG_LINES.append(
+            cx    = bx + bar_w / 2
+
+            # Bar
+            S.append(
                 f'<rect x="{bx}" y="{by}" width="{bar_w}" height="{bh}" '
-                f'rx="3" fill="{color}" opacity="0.9">'
-                f'<title>{sname}: {val:.1f}</title></rect>'
+                f'rx="3" fill="{color}" opacity="0.85">'
+                f'<title>{sname}: {median_val:.1f} ± {stdev_val:.1f} tok/s</title></rect>'
             )
-            # Value label on bar top (only if bar is tall enough)
+
+            # Error bar (only when stdev > 0 and bar is tall enough to be meaningful)
+            if stdev_val > 0 and bh > 4:
+                sd_px    = (stdev_val / max_val) * plot_h
+                cap_w    = max(4, bar_w // 4)
+                top_y    = by - sd_px
+                bot_y    = by + min(sd_px, bh - 2)   # don't extend below bar base
+                # Vertical spine
+                S.append(
+                    f'<line x1="{cx:.1f}" y1="{top_y:.1f}" x2="{cx:.1f}" y2="{bot_y:.1f}" '
+                    f'stroke="white" stroke-width="1.5" opacity="0.7"/>'
+                )
+                # Top cap
+                S.append(
+                    f'<line x1="{cx - cap_w/2:.1f}" y1="{top_y:.1f}" '
+                    f'x2="{cx + cap_w/2:.1f}" y2="{top_y:.1f}" '
+                    f'stroke="white" stroke-width="1.5" opacity="0.7"/>'
+                )
+                # Bottom cap (only if it's visible above the bar base)
+                if bot_y < PAD_TOP + plot_h - 1:
+                    S.append(
+                        f'<line x1="{cx - cap_w/2:.1f}" y1="{bot_y:.1f}" '
+                        f'x2="{cx + cap_w/2:.1f}" y2="{bot_y:.1f}" '
+                        f'stroke="white" stroke-width="1.5" opacity="0.7"/>'
+                    )
+
+            # Value label above bar (includes ± stdev if present)
             if bh > 22:
-                SVG_LINES.append(
-                    f'<text x="{bx + bar_w // 2}" y="{by - 3}" text-anchor="middle" '
-                    f'fill="{color}" font-size="9">{val:.0f}</text>'
+                label_txt = f"{median_val:.0f}"
+                if stdev_val > 0:
+                    label_txt += f" ±{stdev_val:.0f}"
+                S.append(
+                    f'<text x="{cx:.1f}" y="{by - (sd_px + 5 if stdev_val > 0 else 3):.1f}" '
+                    f'text-anchor="middle" fill="{color}" font-size="9">{label_txt}</text>'
                 )
 
         # X-axis group label
         label_x = gx + (n_series * (bar_w + 2)) / 2 - 1
         label_y = PAD_TOP + plot_h + X_LABEL_H - 6
-        SVG_LINES.append(
-            f'<text x="{label_x:.1f}" y="{label_y}" text-anchor="middle" '
-            f'fill="#8892aa" font-size="10">{label}</text>'
-        )
+        if label:
+            S.append(
+                f'<text x="{label_x:.1f}" y="{label_y}" text-anchor="middle" '
+                f'fill="#8892aa" font-size="10">{label}</text>'
+            )
 
-    # Y-axis label (rotated)
+    # ── Y-axis rotated label ──────────────────────────────────────────────
     mid_y = PAD_TOP + plot_h / 2
-    SVG_LINES.append(
+    S.append(
         f'<text x="10" y="{mid_y:.0f}" text-anchor="middle" fill="#6b7a99" '
         f'font-size="10" transform="rotate(-90,10,{mid_y:.0f})">{ylabel}</text>'
     )
 
-    SVG_LINES.append("</svg>")
-    return "\n".join(SVG_LINES)
+    S.append("</svg>")
+    return "\n".join(S)
 
 
 def scatter_svg(points: list[tuple[float, float, str]], xlabel: str, ylabel: str,
@@ -395,25 +472,26 @@ def render_html(models: list[dict], aggs: list[dict]) -> str:
       </tbody>
     </table>"""
 
-    # ── Speed comparison chart ─────────────────────────────────────────────
-    # Per-category TG speed across models
+    # ── Speed comparison charts ───────────────────────────────────────────
+    # One bar per model, averaged across all exercises, with stdev error bar.
+    # series = [(model_name, [(median, stdev)]), ...]
     categories = sorted(set(ex["category"] for ex in exercises))
     tg_series = []
     pp_series = []
     for m in models:
-        tg_vals = []
-        pp_vals = []
-        for cat in categories:
-            cat_results = [r for r in m["results"] if r["category"] == cat]
-            tg_v = [r["metrics"]["gen_speed_tok_s"] for r in cat_results if r["metrics"]["gen_speed_tok_s"] > 0]
-            pp_v = [r["metrics"]["prompt_speed_tok_s"] for r in cat_results if r["metrics"]["prompt_speed_tok_s"] > 0]
-            tg_vals.append(statistics.median(tg_v) if tg_v else 0)
-            pp_vals.append(statistics.median(pp_v) if pp_v else 0)
-        tg_series.append((m["model"], tg_vals))
-        pp_series.append((m["model"], pp_vals))
+        tg_v = [r["metrics"]["gen_speed_tok_s"] for r in m["results"] if r["metrics"]["gen_speed_tok_s"] > 0]
+        pp_v = [r["metrics"]["prompt_speed_tok_s"] for r in m["results"] if r["metrics"]["prompt_speed_tok_s"] > 0]
+        tg_med = statistics.median(tg_v) if tg_v else 0
+        pp_med = statistics.median(pp_v) if pp_v else 0
+        tg_sd  = statistics.stdev(tg_v)  if len(tg_v) > 1 else 0
+        pp_sd  = statistics.stdev(pp_v)  if len(pp_v) > 1 else 0
+        tg_series.append((m["model"], [(tg_med, tg_sd)]))
+        pp_series.append((m["model"], [(pp_med, pp_sd)]))
 
-    tg_chart = bar_chart(tg_series, categories, "tok/s", height=200, bar_w=max(18, 40 // max(n,1)))
-    pp_chart = bar_chart(pp_series, categories, "tok/s", height=200, bar_w=max(18, 40 // max(n,1)))
+    # bar_w scales so the chart fills roughly 480px regardless of model count
+    _bar_w = max(28, min(80, 480 // max(n, 1)))
+    tg_chart = bar_chart(tg_series, [""], "tok/s", height=220, bar_w=_bar_w)
+    pp_chart = bar_chart(pp_series, [""], "tok/s", height=220, bar_w=_bar_w)
 
     # ── Category accuracy table ────────────────────────────────────────────
     cat_table_rows = []
