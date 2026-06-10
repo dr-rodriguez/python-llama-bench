@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-llama_bench.py — Benchmark script for llama.cpp servers
+llama_bench.py — Benchmark script for llama.cpp or Ollama servers
 Measures prompt-processing speed, token generation speed, TTFT, and wall time
 across 25 exercises with verifiable results.
 """
@@ -392,6 +392,10 @@ def build_exercises() -> list[Exercise]:
 
 _ENDPOINT_CHAT    = "chat"     # POST /v1/chat/completions  (OpenAI-compat)
 _ENDPOINT_NATIVE  = "native"   # POST /completion           (llama.cpp native)
+_ENDPOINT_OLLAMA  = "ollama"   # POST /api/chat             (Ollama native)
+
+_SERVER_LLAMACPP = "llamacpp"
+_SERVER_OLLAMA   = "ollama"
 
 
 class LlamaCppClient:
@@ -409,12 +413,13 @@ class LlamaCppClient:
         self.diagnose = diagnose
         self.session = requests.Session()
         self._endpoint_mode: Optional[str] = None   # set by probe()
+        self._server_type: str = _SERVER_LLAMACPP   # set by probe()
 
     # ------------------------------------------------------------------
     # Model discovery
     # ------------------------------------------------------------------
     def list_models(self) -> list[str]:
-        """Query /v1/models and return the list of available model IDs."""
+        """Query /v1/models (llama.cpp/OpenAI) or /api/tags (Ollama) for available model IDs."""
         try:
             r = self.session.get(f"{self.base_url}/v1/models", timeout=10)
             if r.status_code == 200:
@@ -422,11 +427,28 @@ class LlamaCppClient:
                 return [m.get("id", "") for m in data.get("data", [])]
         except requests.RequestException:
             pass
+        try:
+            r = self.session.get(f"{self.base_url}/api/tags", timeout=10)
+            if r.status_code == 200:
+                data = r.json()
+                return [m.get("name", "") for m in data.get("models", [])]
+        except requests.RequestException:
+            pass
         return []
 
     # ------------------------------------------------------------------
     # Probe: figure out which endpoint + payload shape this server accepts
     # ------------------------------------------------------------------
+    def _is_ollama(self) -> bool:
+        """Return True if the server identifies itself as Ollama via /api/version."""
+        try:
+            r = self.session.get(f"{self.base_url}/api/version", timeout=5)
+            if r.status_code == 200:
+                return "version" in r.json()
+        except requests.RequestException:
+            pass
+        return False
+
     def probe(self) -> bool:
         """
         Try /health, then attempt a one-token completion on each known endpoint.
@@ -434,7 +456,42 @@ class LlamaCppClient:
         router-mode servers started with --models-preset.
         Sets self._endpoint_mode and returns True if the server is usable.
         """
-        # 1. Basic reachability via /health (non-fatal if absent)
+        # 1. Detect Ollama early — it also serves /v1/chat/completions but without timings
+        if self._is_ollama():
+            ollama_payload: dict = {
+                "model": self.model or "",
+                "messages": [{"role": "user", "content": "Hi"}],
+                "stream": False,
+                "options": {"num_predict": 1},
+            }
+            try:
+                r = self.session.post(
+                    f"{self.base_url}/api/chat",
+                    json=ollama_payload, timeout=15,
+                )
+                if r.status_code == 200:
+                    self._endpoint_mode = _ENDPOINT_OLLAMA
+                    self._server_type = _SERVER_OLLAMA
+                    model_label = f" (model: {self.model})" if self.model else ""
+                    console.print(f"[green]  Endpoint:[/green] /api/chat (Ollama){model_label} ✓")
+                    return True
+                else:
+                    if self.diagnose:
+                        console.print(f"[dim]  /api/chat → {r.status_code}: {r.text[:400]}[/dim]")
+            except requests.RequestException as e:
+                if self.diagnose:
+                    console.print(f"[dim]  /api/chat error: {e}[/dim]")
+            if not self.model:
+                available = self.list_models()
+                if available:
+                    console.print(
+                        f"[yellow]  Hint:[/yellow] Ollama detected but probe failed.\n"
+                        f"  Available models: {', '.join(available)}\n"
+                        f"  Re-run with e.g. [dim]--model {available[0]}[/dim]"
+                    )
+            return False
+
+        # 2. Basic reachability via /health (non-fatal if absent)
         try:
             r = self.session.get(f"{self.base_url}/health", timeout=5)
             if r.status_code not in (200, 503):
@@ -442,7 +499,7 @@ class LlamaCppClient:
         except requests.RequestException:
             pass
 
-        # 2. Try /v1/chat/completions
+        # 3. Try /v1/chat/completions
         chat_payload: dict = {
             "messages": [{"role": "user", "content": "Hi"}],
             "max_tokens": 1,
@@ -468,7 +525,7 @@ class LlamaCppClient:
             if self.diagnose:
                 console.print(f"[dim]  /v1/chat/completions error: {e}[/dim]")
 
-        # 3. Try native /completion endpoint
+        # 3. Try native /completion endpoint (llama.cpp)
         native_payload: dict = {
             "prompt": "Hi",
             "n_predict": 1,
@@ -484,6 +541,7 @@ class LlamaCppClient:
             )
             if r.status_code == 200:
                 self._endpoint_mode = _ENDPOINT_NATIVE
+                self._server_type = _SERVER_LLAMACPP
                 model_label = f" (model: {self.model})" if self.model else ""
                 console.print(f"[green]  Endpoint:[/green] /completion (native){model_label} ✓")
                 return True
@@ -494,7 +552,7 @@ class LlamaCppClient:
             if self.diagnose:
                 console.print(f"[dim]  /completion error: {e}[/dim]")
 
-        # 4. If both failed and no model was given, suggest available models
+        # 4. If all failed and no model was given, suggest available models
         if not self.model:
             available = self.list_models()
             if available:
@@ -523,6 +581,8 @@ class LlamaCppClient:
         """Returns (response_text, metrics, error_or_None). Uses detected endpoint."""
         if self._endpoint_mode == _ENDPOINT_NATIVE:
             return self._complete_native(prompt, system_prompt, max_tokens, temperature)
+        elif self._endpoint_mode == _ENDPOINT_OLLAMA:
+            return self._complete_ollama(prompt, system_prompt, max_tokens, temperature)
         else:
             return self._complete_chat(prompt, system_prompt, max_tokens, temperature)
 
@@ -598,8 +658,51 @@ class LlamaCppClient:
         text = data.get("content", "")
         return text, self._extract_metrics(data, wall_ms), None
 
+    def _complete_ollama(
+        self, prompt: str, system_prompt: str, max_tokens: int, temperature: float
+    ) -> tuple[str, TimingMetrics, Optional[str]]:
+        payload: dict = {
+            "model": self.model,
+            "messages": [
+                {"role": "system", "content": system_prompt},
+                {"role": "user",   "content": prompt},
+            ],
+            "stream": False,
+            "options": {
+                "num_predict": max_tokens,
+                "temperature": temperature,
+            },
+        }
+
+        wall_start = time.perf_counter()
+        try:
+            resp = self.session.post(
+                f"{self.base_url}/api/chat",
+                json=payload, timeout=self.timeout,
+            )
+            if resp.status_code != 200:
+                wall_ms = (time.perf_counter() - wall_start) * 1000
+                err = f"HTTP {resp.status_code}"
+                if self.diagnose:
+                    err += f": {resp.text[:400]}"
+                return "", TimingMetrics(total_wall_time_ms=wall_ms), err
+        except requests.RequestException as e:
+            wall_ms = (time.perf_counter() - wall_start) * 1000
+            return "", TimingMetrics(total_wall_time_ms=wall_ms), str(e)
+
+        wall_ms = (time.perf_counter() - wall_start) * 1000
+        data = resp.json()
+        text = ""
+        try:
+            text = data["message"]["content"]
+        except (KeyError, TypeError):
+            pass
+        return text, self._extract_metrics(data, wall_ms), None
+
     def _extract_metrics(self, data: dict, wall_ms: float) -> TimingMetrics:
         metrics = TimingMetrics(total_wall_time_ms=wall_ms)
+
+        # llama.cpp native / chat: "timings" dict with millisecond values
         timings = data.get("timings") or {}
         if timings:
             pt    = timings.get("prompt_n",        timings.get("prompt_eval_n", 0))
@@ -614,10 +717,30 @@ class LlamaCppClient:
             metrics.gen_time_ms   = float(gt_ms)
             metrics.gen_speed_tok_s = float(timings.get(
                 "predicted_per_second", gt / (gt_ms / 1000) if gt_ms > 0 else 0))
-        else:
-            usage = data.get("usage", {})
-            metrics.prompt_tokens = usage.get("prompt_tokens", 0)
-            metrics.gen_tokens    = usage.get("completion_tokens", 0)
+            return metrics
+
+        # Ollama /api/chat response: nanosecond duration fields
+        # Keys: prompt_eval_count, prompt_eval_duration (ns),
+        #       eval_count, eval_duration (ns)
+        if "eval_count" in data or "prompt_eval_count" in data:
+            pt    = data.get("prompt_eval_count", 0)
+            pt_ns = data.get("prompt_eval_duration", 0)
+            gt    = data.get("eval_count", 0)
+            gt_ns = data.get("eval_duration", 0)
+            pt_ms = pt_ns / 1_000_000
+            gt_ms = gt_ns / 1_000_000
+            metrics.prompt_tokens       = int(pt)
+            metrics.prompt_eval_time_ms = float(pt_ms)
+            metrics.prompt_speed_tok_s  = pt / (pt_ms / 1000) if pt_ms > 0 else 0.0
+            metrics.gen_tokens          = int(gt)
+            metrics.gen_time_ms         = float(gt_ms)
+            metrics.gen_speed_tok_s     = gt / (gt_ms / 1000) if gt_ms > 0 else 0.0
+            return metrics
+
+        # OpenAI-compat fallback: usage only, no speed info
+        usage = data.get("usage", {})
+        metrics.prompt_tokens = usage.get("prompt_tokens", 0)
+        metrics.gen_tokens    = usage.get("completion_tokens", 0)
         return metrics
 
 
@@ -730,7 +853,7 @@ def print_report(results: list[BenchmarkResult], model_name: str):
         box=box.ROUNDED,
         show_header=True,
         header_style="bold white",
-        title=f"[bold]llama.cpp Benchmark — {model_name} — {datetime.now().strftime('%Y-%m-%d %H:%M')}[/bold]",
+        title=f"[bold]LLM Benchmark — {model_name} — {datetime.now().strftime('%Y-%m-%d %H:%M')}[/bold]",
         expand=True,
     )
     table.add_column("#",       style="dim", width=4, justify="right")
@@ -837,10 +960,10 @@ def save_results(results: list[BenchmarkResult], path: str, model_name: str):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Benchmark a llama.cpp server — measures PP/TG speeds and correctness."
+        description="Benchmark a llama.cpp or Ollama server — measures PP/TG speeds and correctness."
     )
-    parser.add_argument("--host",       default="localhost",  help="llama.cpp server host (default: localhost)")
-    parser.add_argument("--port",       default=8080, type=int, help="llama.cpp server port (default: 8080)")
+    parser.add_argument("--host",       default="localhost",  help="Server host (default: localhost)")
+    parser.add_argument("--port",       default=8080, type=int, help="Server port (default: 8080 for llama.cpp, 11434 for Ollama)")
     parser.add_argument("--model",      default="local",      help="Model name label for output (default: local)")
     parser.add_argument("--repeat",     default=1,  type=int, help="Runs per exercise — median is reported (default: 1)")
     parser.add_argument("--categories", default=None,         help="Comma-separated categories to run (e.g. Math,Code)")
@@ -861,7 +984,7 @@ def main():
 
     categories = [c.strip() for c in args.categories.split(",")] if args.categories else None
 
-    console.print(f"\n[bold]llama.cpp Benchmark[/bold]")
+    console.print("\n[bold]LLM Benchmark (llama.cpp / Ollama)[/bold]")
     console.print(f"  Server : [cyan]{args.host}:{args.port}[/cyan]")
     console.print(f"  Model  : [cyan]{args.model}[/cyan]")
     console.print(f"  Repeats: [cyan]{args.repeat}[/cyan]")
@@ -905,7 +1028,7 @@ def main():
         console.print(
             f"\n[bold red]ERROR:[/bold red] Could not connect to a working endpoint at "
             f"[cyan]{args.host}:{args.port}[/cyan].\n"
-            f"  Tried /v1/chat/completions and /completion — both failed.{hint}"
+            f"  Tried /v1/chat/completions, /completion, and /api/chat — all failed.{hint}"
         )
         sys.exit(1)
     console.print("[green]Server is up.[/green]\n")
