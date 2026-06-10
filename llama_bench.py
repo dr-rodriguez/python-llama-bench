@@ -400,7 +400,7 @@ class LlamaCppClient:
         host: str,
         port: int,
         model: str = "",
-        timeout: int = 120,
+        timeout: int = 240,  # longer timeout for larger models
         diagnose: bool = False,
     ):
         self.base_url = f"http://{host}:{port}"
