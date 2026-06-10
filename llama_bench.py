@@ -60,6 +60,7 @@ class Exercise:
     prompt: str
     validator: Callable[[str], bool]
     system_prompt: str = "You are a helpful assistant. Be concise and direct."
+    max_tokens: int = 1024
 
 
 # ---------------------------------------------------------------------------
@@ -619,11 +620,19 @@ class LlamaCppClient:
         wall_ms = (time.perf_counter() - wall_start) * 1000
         data = resp.json()
         text = ""
+        parse_error = None
         try:
-            text = data["choices"][0]["message"]["content"]
-        except (KeyError, IndexError):
-            pass
-        return text, self._extract_metrics(data, wall_ms), None
+            content = data["choices"][0]["message"]["content"]
+            text = content if content is not None else ""
+            if content is None:
+                parse_error = "response content was null"
+                if self.diagnose:
+                    console.print(f"[dim]  _complete_chat null content: {str(data)[:400]}[/dim]")
+        except (KeyError, IndexError, TypeError) as e:
+            parse_error = f"could not extract content: {e}"
+            if self.diagnose:
+                console.print(f"[dim]  _complete_chat parse error ({e}): {str(data)[:400]}[/dim]")
+        return text, self._extract_metrics(data, wall_ms), parse_error
 
     def _complete_native(
         self, prompt: str, system_prompt: str, max_tokens: int, temperature: float
@@ -655,8 +664,14 @@ class LlamaCppClient:
 
         wall_ms = (time.perf_counter() - wall_start) * 1000
         data = resp.json()
-        text = data.get("content", "")
-        return text, self._extract_metrics(data, wall_ms), None
+        content = data.get("content")
+        text = content if content is not None else ""
+        parse_error = None
+        if content is None:
+            parse_error = "response content was null"
+            if self.diagnose:
+                console.print(f"[dim]  _complete_native null content: {str(data)[:400]}[/dim]")
+        return text, self._extract_metrics(data, wall_ms), parse_error
 
     def _complete_ollama(
         self, prompt: str, system_prompt: str, max_tokens: int, temperature: float
@@ -693,11 +708,27 @@ class LlamaCppClient:
         wall_ms = (time.perf_counter() - wall_start) * 1000
         data = resp.json()
         text = ""
+        parse_error = None
         try:
-            text = data["message"]["content"]
-        except (KeyError, TypeError):
-            pass
-        return text, self._extract_metrics(data, wall_ms), None
+            message = data["message"]
+            content = message.get("content")
+            thinking = message.get("thinking")
+            if content:
+                text = content
+            elif thinking:
+                text = thinking
+                parse_error = "content empty; fell back to thinking field (token budget may be too low)"
+                if self.diagnose:
+                    console.print(f"[dim]  _complete_ollama: content empty, using thinking field[/dim]")
+            else:
+                parse_error = "response content was null"
+                if self.diagnose:
+                    console.print(f"[dim]  _complete_ollama null content: {str(data)[:400]}[/dim]")
+        except (KeyError, TypeError) as e:
+            parse_error = f"could not extract content: {e}"
+            if self.diagnose:
+                console.print(f"[dim]  _complete_ollama parse error ({e}): {str(data)[:400]}[/dim]")
+        return text, self._extract_metrics(data, wall_ms), parse_error
 
     def _extract_metrics(self, data: dict, wall_ms: float) -> TimingMetrics:
         metrics = TimingMetrics(total_wall_time_ms=wall_ms)
@@ -781,11 +812,12 @@ def run_benchmarks(
             text, metrics, error = client.complete(
                 prompt=ex.prompt,
                 system_prompt=ex.system_prompt,
+                max_tokens=ex.max_tokens,
             )
             last_text = text
             last_error = error
 
-            if error:
+            if error and not text:
                 last_passed = False
             else:
                 try:
