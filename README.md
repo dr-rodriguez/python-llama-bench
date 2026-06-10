@@ -7,7 +7,13 @@ Coded with assistance from Claude (Sonnet 4.6).
 Initial prompt:
 > Generate a plan for a python script that will help benchmark local AI models running llama.cpp. I'll be running the server and want to capture things like prompt-processing and token generation speeds, as well as total execution time. I want the script to have a series of exercises, at least 20, that it runs through with verifiable results so it can output success metrics, like 14/20 pass or something like that.
 
-Use `uv sync` to get the package requirements
+This took a few tries because I use the --models-preset flag when running llama.cpp so it acts a bit more like a router.
+
+Use `uv sync` to get the package requirements.   
+Can activate with `source .venv/bin/activate`
+
+# Discover models to use
+`python llama_bench.py --list-models`
 
 # Basic run (server on localhost:8080)
 `python llama_bench.py --model mistral-7b`
@@ -23,3 +29,12 @@ Use `uv sync` to get the package requirements
 
 # Get full error message
 `python llama_bench.py --diagnose`
+
+# Executions
+```
+python llama_bench.py --model gemma4:12b-q3 --output data/gemma4-12b-q3.json --repeat 3
+python llama_bench.py --model qwen3.5:9b --output data/qwen3.5-9b.json --repeat 3
+python llama_bench.py --model qwen3:8b --output data/qwen3-8b.json --repeat 3
+python llama_bench.py --model llama3.3:8b --output data/llama3.3-8b.json --repeat 3
+python llama_bench.py --model gemma4:26b-moe --output data/gemma4-26b-moe.json --repeat 3
+```

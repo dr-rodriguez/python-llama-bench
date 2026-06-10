@@ -390,18 +390,39 @@ def build_exercises() -> list[Exercise]:
 # llama.cpp HTTP client
 # ---------------------------------------------------------------------------
 
-# Endpoint modes tried in order during probe()
 _ENDPOINT_CHAT    = "chat"     # POST /v1/chat/completions  (OpenAI-compat)
 _ENDPOINT_NATIVE  = "native"   # POST /completion           (llama.cpp native)
 
 
 class LlamaCppClient:
-    def __init__(self, host: str, port: int, timeout: int = 120, diagnose: bool = False):
+    def __init__(
+        self,
+        host: str,
+        port: int,
+        model: str = "",
+        timeout: int = 120,
+        diagnose: bool = False,
+    ):
         self.base_url = f"http://{host}:{port}"
+        self.model = model          # passed through in every request payload
         self.timeout = timeout
         self.diagnose = diagnose
         self.session = requests.Session()
         self._endpoint_mode: Optional[str] = None   # set by probe()
+
+    # ------------------------------------------------------------------
+    # Model discovery
+    # ------------------------------------------------------------------
+    def list_models(self) -> list[str]:
+        """Query /v1/models and return the list of available model IDs."""
+        try:
+            r = self.session.get(f"{self.base_url}/v1/models", timeout=10)
+            if r.status_code == 200:
+                data = r.json()
+                return [m.get("id", "") for m in data.get("data", [])]
+        except requests.RequestException:
+            pass
+        return []
 
     # ------------------------------------------------------------------
     # Probe: figure out which endpoint + payload shape this server accepts
@@ -409,22 +430,27 @@ class LlamaCppClient:
     def probe(self) -> bool:
         """
         Try /health, then attempt a one-token completion on each known endpoint.
+        Includes the model name in the payload when one is set — required by
+        router-mode servers started with --models-preset.
         Sets self._endpoint_mode and returns True if the server is usable.
         """
         # 1. Basic reachability via /health (non-fatal if absent)
         try:
             r = self.session.get(f"{self.base_url}/health", timeout=5)
-            if r.status_code not in (200, 503):   # 503 = loading, still reachable
+            if r.status_code not in (200, 503):
                 console.print(f"[yellow]  /health returned {r.status_code}[/yellow]")
         except requests.RequestException:
-            pass   # /health missing is fine
+            pass
 
-        # 2. Try chat completions endpoint
-        chat_payload = {
+        # 2. Try /v1/chat/completions
+        chat_payload: dict = {
             "messages": [{"role": "user", "content": "Hi"}],
             "max_tokens": 1,
             "temperature": 0.0,
         }
+        if self.model:
+            chat_payload["model"] = self.model
+
         try:
             r = self.session.post(
                 f"{self.base_url}/v1/chat/completions",
@@ -432,21 +458,25 @@ class LlamaCppClient:
             )
             if r.status_code == 200:
                 self._endpoint_mode = _ENDPOINT_CHAT
-                console.print(f"[green]  Endpoint:[/green] /v1/chat/completions ✓")
+                model_label = f" (model: {self.model})" if self.model else ""
+                console.print(f"[green]  Endpoint:[/green] /v1/chat/completions{model_label} ✓")
                 return True
             else:
                 if self.diagnose:
-                    console.print(f"[dim]  /v1/chat/completions → {r.status_code}: {r.text[:300]}[/dim]")
+                    console.print(f"[dim]  /v1/chat/completions → {r.status_code}: {r.text[:400]}[/dim]")
         except requests.RequestException as e:
             if self.diagnose:
                 console.print(f"[dim]  /v1/chat/completions error: {e}[/dim]")
 
         # 3. Try native /completion endpoint
-        native_payload = {
+        native_payload: dict = {
             "prompt": "Hi",
             "n_predict": 1,
             "temperature": 0.0,
         }
+        if self.model:
+            native_payload["model"] = self.model
+
         try:
             r = self.session.post(
                 f"{self.base_url}/completion",
@@ -454,18 +484,29 @@ class LlamaCppClient:
             )
             if r.status_code == 200:
                 self._endpoint_mode = _ENDPOINT_NATIVE
-                console.print(f"[green]  Endpoint:[/green] /completion (native) ✓")
+                model_label = f" (model: {self.model})" if self.model else ""
+                console.print(f"[green]  Endpoint:[/green] /completion (native){model_label} ✓")
                 return True
             else:
                 if self.diagnose:
-                    console.print(f"[dim]  /completion → {r.status_code}: {r.text[:300]}[/dim]")
+                    console.print(f"[dim]  /completion → {r.status_code}: {r.text[:400]}[/dim]")
         except requests.RequestException as e:
             if self.diagnose:
                 console.print(f"[dim]  /completion error: {e}[/dim]")
 
+        # 4. If both failed and no model was given, suggest available models
+        if not self.model:
+            available = self.list_models()
+            if available:
+                console.print(
+                    f"[yellow]  Hint:[/yellow] Server returned model-required error but no --model was given.\n"
+                    f"  Available models: {', '.join(available)}\n"
+                    f"  Re-run with e.g. [dim]--model {available[0]}[/dim]"
+                )
+
         return False
 
-    # Legacy alias so existing call sites still work
+    # Legacy alias
     def health_check(self) -> bool:
         return self.probe()
 
@@ -479,10 +520,7 @@ class LlamaCppClient:
         max_tokens: int = 300,
         temperature: float = 0.0,
     ) -> tuple[str, TimingMetrics, Optional[str]]:
-        """
-        Returns (response_text, metrics, error_string_or_None).
-        Automatically uses whichever endpoint was detected by probe().
-        """
+        """Returns (response_text, metrics, error_or_None). Uses detected endpoint."""
         if self._endpoint_mode == _ENDPOINT_NATIVE:
             return self._complete_native(prompt, system_prompt, max_tokens, temperature)
         else:
@@ -491,8 +529,7 @@ class LlamaCppClient:
     def _complete_chat(
         self, prompt: str, system_prompt: str, max_tokens: int, temperature: float
     ) -> tuple[str, TimingMetrics, Optional[str]]:
-        # NOTE: do NOT include "model" or "stream" — some llama.cpp builds reject them
-        payload = {
+        payload: dict = {
             "messages": [
                 {"role": "system", "content": system_prompt},
                 {"role": "user",   "content": prompt},
@@ -500,6 +537,9 @@ class LlamaCppClient:
             "max_tokens": max_tokens,
             "temperature": temperature,
         }
+        if self.model:
+            payload["model"] = self.model
+
         wall_start = time.perf_counter()
         try:
             resp = self.session.post(
@@ -528,13 +568,15 @@ class LlamaCppClient:
     def _complete_native(
         self, prompt: str, system_prompt: str, max_tokens: int, temperature: float
     ) -> tuple[str, TimingMetrics, Optional[str]]:
-        # llama.cpp native /completion endpoint — system prompt goes in the prompt string
         full_prompt = f"### System:\n{system_prompt}\n\n### User:\n{prompt}\n\n### Assistant:\n"
-        payload = {
+        payload: dict = {
             "prompt": full_prompt,
             "n_predict": max_tokens,
             "temperature": temperature,
         }
+        if self.model:
+            payload["model"] = self.model
+
         wall_start = time.perf_counter()
         try:
             resp = self.session.post(
@@ -805,6 +847,8 @@ def main():
     parser.add_argument("--output",     default=None,         help="Save JSON results to this file")
     parser.add_argument("--verbose",    action="store_true",  help="Print each model response")
     parser.add_argument("--diagnose",   action="store_true",  help="Print raw server error bodies to debug 400s")
+    parser.add_argument("--list-models", action="store_true",  dest="list_models",
+                        help="Query the server for available model names and exit")
     parser.add_argument("--list",       action="store_true",  help="List all exercises and exit")
     args = parser.parse_args()
 
@@ -825,16 +869,43 @@ def main():
         console.print(f"  Filter : [cyan]{', '.join(categories)}[/cyan]")
     console.print()
 
-    client = LlamaCppClient(host=args.host, port=args.port, diagnose=args.diagnose)
+    client = LlamaCppClient(
+        host=args.host,
+        port=args.port,
+        model=args.model,
+        diagnose=args.diagnose,
+    )
+
+    # --list-models: just print available models and exit
+    if args.list_models:
+        models = client.list_models()
+        if models:
+            console.print("\n[bold]Available models on this server:[/bold]")
+            for m in models:
+                console.print(f"  • {m}")
+            console.print(f"\nUse [dim]--model <name>[/dim] to target one.")
+        else:
+            console.print("[yellow]No models returned by /v1/models (server may not support listing).[/yellow]")
+        return
 
     console.print("[dim]Probing server — detecting endpoint...[/dim]")
     if not client.probe():
+        available = client.list_models()
+        hint = ""
+        if available:
+            hint = (
+                f"\n  Available models: [cyan]{', '.join(available)}[/cyan]"
+                f"\n  Re-run with e.g. [dim]--model {available[0]}[/dim]"
+            )
+        else:
+            hint = (
+                f"\n  Run [dim]--list-models[/dim] to see what model names the server expects."
+                f"\n  Add [dim]--diagnose[/dim] to print the raw server error body."
+            )
         console.print(
             f"\n[bold red]ERROR:[/bold red] Could not connect to a working endpoint at "
             f"[cyan]{args.host}:{args.port}[/cyan].\n"
-            f"  Tried /v1/chat/completions and /completion — both failed.\n"
-            f"  Is llama-server running?  e.g. [dim]llama-server -m model.gguf --port 8080[/dim]\n"
-            f"  Re-run with [dim]--diagnose[/dim] to see the raw server error."
+            f"  Tried /v1/chat/completions and /completion — both failed.{hint}"
         )
         sys.exit(1)
     console.print("[green]Server is up.[/green]\n")
