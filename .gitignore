@@ -6,9 +6,13 @@ dist/
 wheels/
 *.egg-info
 
+# Agents
+.agents/
+.claude/
+
 # Virtual environments
 .venv
 uv.lock
 
-data/
+data*/
 *.html

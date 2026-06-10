@@ -60,7 +60,7 @@ class Exercise:
     prompt: str
     validator: Callable[[str], bool]
     system_prompt: str = "You are a helpful assistant. Be concise and direct."
-    max_tokens: int = 1024
+    max_tokens: int = 300
 
 
 # ---------------------------------------------------------------------------
@@ -252,65 +252,70 @@ def build_exercises() -> list[Exercise]:
         # ── Factual Knowledge ────────────────────────────────────────────────
         Exercise(
             id=7, category="Factual",
-            description="Capital of Japan",
-            prompt="What is the capital of Japan? Reply with only the city name.",
-            validator=exact_match("Tokyo"),
+            description="Capital of Myanmar",
+            prompt="What is the capital of Myanmar? Reply with only the city name.",
+            validator=exact_match("Naypyidaw", "Nay Pyi Taw"),
         ),
         Exercise(
             id=8, category="Factual",
-            description="Chemical symbol for gold",
-            prompt="What is the chemical symbol for gold? Reply with only the symbol.",
-            validator=exact_match("Au"),
+            description="Chemical symbol for tungsten",
+            prompt="What is the chemical symbol for tungsten? Reply with only the symbol.",
+            validator=exact_match("W"),
         ),
         Exercise(
             id=9, category="Factual",
-            description="Number of planets in the solar system",
-            prompt="How many planets are in our solar system? Reply with only the number.",
-            validator=starts_with_number(8),
+            description="Number of bones in the adult human body",
+            prompt="How many bones are in the adult human body? Reply with only the number.",
+            validator=starts_with_number(206),
         ),
         Exercise(
             id=10, category="Factual",
-            description="Boiling point of water in Celsius",
-            prompt="At what temperature in Celsius does water boil at sea level? Reply with only the number.",
-            validator=starts_with_number(100),
+            description="Year the Berlin Wall fell",
+            prompt="In what year did the Berlin Wall fall? Reply with only the four-digit year.",
+            validator=starts_with_number(1989),
         ),
         Exercise(
             id=11, category="Factual",
-            description="Acronym: CPU",
-            prompt="What does the acronym CPU stand for? Reply with only the expanded form.",
-            validator=contains_all("central", "processing", "unit"),
+            description="Deepest ocean trench",
+            prompt="What is the name of the deepest ocean trench on Earth? Reply with only the name.",
+            validator=contains_any("mariana", "marianas"),
         ),
 
         # ── Reasoning & Language ─────────────────────────────────────────────
         Exercise(
             id=12, category="Reasoning",
-            description="Odd one out (carrot among fruits)",
-            prompt="Which word does not belong with the others? apple, banana, carrot, grape. Reply with only the word.",
-            validator=exact_match("carrot"),
+            description="Odd one out (abstract: river among geometry)",
+            prompt="Which word does not belong with the others? parallelogram, rhombus, river, trapezoid. Reply with only the word.",
+            validator=exact_match("river"),
+            max_tokens=1024,
         ),
         Exercise(
             id=13, category="Reasoning",
-            description="Analogy: hot:cold :: day:___",
-            prompt="Complete the analogy. Hot is to cold as day is to ___. Reply with only the missing word.",
-            validator=exact_match("night"),
+            description="Letter sequence: O, T, T, F, F, S, S, ___",
+            prompt="What is the next letter in the sequence: O, T, T, F, F, S, S, ___? (Hint: think about counting.) Reply with only the single letter.",
+            validator=exact_match("E"),
+            max_tokens=1024,
         ),
         Exercise(
             id=14, category="Reasoning",
-            description="Next in sequence: 2, 4, 8, 16, ___",
-            prompt="What is the next number in the sequence: 2, 4, 8, 16, ___? Reply with only the number.",
-            validator=starts_with_number(32),
+            description="Next in sequence: 1, 1, 2, 3, 5, 8, 13, ___",
+            prompt="What is the next number in the sequence: 1, 1, 2, 3, 5, 8, 13, ___? Reply with only the number.",
+            validator=starts_with_number(21),
+            max_tokens=1024,
         ),
         Exercise(
             id=15, category="Reasoning",
-            description="Word that rhymes with 'cat'",
-            prompt="Give exactly one word that rhymes with 'cat'. Reply with only that word.",
-            validator=ends_with_pattern("at"),
+            description="Counterfactual: days in February in a leap year",
+            prompt="If a year is divisible by 400, how many days does February have in that year? Reply with only the number.",
+            validator=starts_with_number(29),
+            max_tokens=1024,
         ),
         Exercise(
             id=16, category="Reasoning",
-            description="Acronym: DNA",
-            prompt="What does DNA stand for? Reply with only the expanded form.",
-            validator=contains_all("deoxyribonucleic", "acid"),
+            description="Verbal reasoning: before yesterday's tomorrow",
+            prompt="If today is Wednesday, what day was 'the day before yesterday's tomorrow'? Think step by step, then reply with only the day name.",
+            validator=exact_match("Tuesday"),
+            max_tokens=1024,
         ),
 
         # ── Instruction Following ─────────────────────────────────────────────
@@ -325,6 +330,7 @@ def build_exercises() -> list[Exercise]:
             description="Respond with valid JSON {name, age}",
             prompt='Respond with only a valid JSON object containing exactly two keys: "name" (any string value) and "age" (any integer value). No other text.',
             validator=json_valid_with_keys("name", "age"),
+            max_tokens=1024,
         ),
         Exercise(
             id=19, category="Instruction",
@@ -345,24 +351,28 @@ def build_exercises() -> list[Exercise]:
             description="Python: squares list comprehension",
             prompt="Write a single Python print statement using a list comprehension that prints the squares of 1 through 5. Provide only the code, no explanation.",
             validator=python_code_produces("[1, 4, 9, 16, 25]"),
+            max_tokens=1024,
         ),
         Exercise(
             id=22, category="Code",
             description="Python: reverse a string",
             prompt='Write a single Python print statement that prints the reverse of the string "hello". Provide only the code, no explanation.',
             validator=python_code_produces("olleh"),
+            max_tokens=1024,
         ),
         Exercise(
             id=23, category="Code",
             description="Python: FizzBuzz output for n=15",
             prompt="Write a Python snippet that prints FizzBuzz for numbers 1 through 15 (print Fizz for multiples of 3, Buzz for multiples of 5, FizzBuzz for both). Provide only the code.",
             validator=python_code_produces("FizzBuzz"),
+            max_tokens=1024,
         ),
         Exercise(
             id=24, category="Code",
             description="Python: sum of a list",
             prompt="Write a single Python print statement that prints the sum of the list [10, 20, 30, 40]. Provide only the code, no explanation.",
             validator=python_code_produces("100"),
+            max_tokens=1024,
         ),
 
         # ── Long Context / Extraction ─────────────────────────────────────────
