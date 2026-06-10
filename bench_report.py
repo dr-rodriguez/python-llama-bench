@@ -214,7 +214,7 @@ def bar_chart(
         gx = PAD_L + 4 + gi * group_w
         for si, (sname, pts) in enumerate(series):
             median_val, stdev_val = pts[gi] if gi < len(pts) else (0, 0)
-            bh    = int((median_val / max_val) * plot_h)
+            bh    = int((median_val / max_val) * plot_h) if max_val else 0
             bx    = gx + si * (bar_w + 2)
             by    = PAD_TOP + plot_h - bh
             color = COLORS[si % len(COLORS)]
@@ -229,7 +229,7 @@ def bar_chart(
 
             # Error bar (only when stdev > 0 and bar is tall enough to be meaningful)
             if stdev_val > 0 and bh > 4:
-                sd_px    = (stdev_val / max_val) * plot_h
+                sd_px    = (stdev_val / max_val) * plot_h  if max_val else 0
                 cap_w    = max(4, bar_w // 4)
                 top_y    = by - sd_px
                 bot_y    = by + min(sd_px, bh - 2)   # don't extend below bar base
