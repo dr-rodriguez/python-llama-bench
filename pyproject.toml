@@ -1,0 +1,10 @@
+[project]
+name = "python-llama-bench"
+version = "0.1.0"
+description = "Script to benchmark local AI"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "requests>=2.34.2",
+    "rich>=15.0.0",
+]
