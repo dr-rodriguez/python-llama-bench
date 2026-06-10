@@ -21,3 +21,5 @@ Use `uv sync` to get the package requirements
 # List all exercises
 `python llama_bench.py --list`
 
+# Get full error message
+`python llama_bench.py --diagnose`

@@ -390,28 +390,88 @@ def build_exercises() -> list[Exercise]:
 # llama.cpp HTTP client
 # ---------------------------------------------------------------------------
 
+# Endpoint modes tried in order during probe()
+_ENDPOINT_CHAT    = "chat"     # POST /v1/chat/completions  (OpenAI-compat)
+_ENDPOINT_NATIVE  = "native"   # POST /completion           (llama.cpp native)
+
+
 class LlamaCppClient:
-    def __init__(self, host: str, port: int, timeout: int = 120):
+    def __init__(self, host: str, port: int, timeout: int = 120, diagnose: bool = False):
         self.base_url = f"http://{host}:{port}"
         self.timeout = timeout
+        self.diagnose = diagnose
         self.session = requests.Session()
+        self._endpoint_mode: Optional[str] = None   # set by probe()
 
-    def health_check(self) -> bool:
+    # ------------------------------------------------------------------
+    # Probe: figure out which endpoint + payload shape this server accepts
+    # ------------------------------------------------------------------
+    def probe(self) -> bool:
+        """
+        Try /health, then attempt a one-token completion on each known endpoint.
+        Sets self._endpoint_mode and returns True if the server is usable.
+        """
+        # 1. Basic reachability via /health (non-fatal if absent)
         try:
             r = self.session.get(f"{self.base_url}/health", timeout=5)
-            return r.status_code == 200
+            if r.status_code not in (200, 503):   # 503 = loading, still reachable
+                console.print(f"[yellow]  /health returned {r.status_code}[/yellow]")
         except requests.RequestException:
-            # Try a minimal completion as fallback
-            try:
-                r = self.session.post(
-                    f"{self.base_url}/v1/chat/completions",
-                    json={"model": "local", "messages": [{"role": "user", "content": "hi"}], "max_tokens": 1},
-                    timeout=10,
-                )
-                return r.status_code == 200
-            except requests.RequestException:
-                return False
+            pass   # /health missing is fine
 
+        # 2. Try chat completions endpoint
+        chat_payload = {
+            "messages": [{"role": "user", "content": "Hi"}],
+            "max_tokens": 1,
+            "temperature": 0.0,
+        }
+        try:
+            r = self.session.post(
+                f"{self.base_url}/v1/chat/completions",
+                json=chat_payload, timeout=15,
+            )
+            if r.status_code == 200:
+                self._endpoint_mode = _ENDPOINT_CHAT
+                console.print(f"[green]  Endpoint:[/green] /v1/chat/completions ✓")
+                return True
+            else:
+                if self.diagnose:
+                    console.print(f"[dim]  /v1/chat/completions → {r.status_code}: {r.text[:300]}[/dim]")
+        except requests.RequestException as e:
+            if self.diagnose:
+                console.print(f"[dim]  /v1/chat/completions error: {e}[/dim]")
+
+        # 3. Try native /completion endpoint
+        native_payload = {
+            "prompt": "Hi",
+            "n_predict": 1,
+            "temperature": 0.0,
+        }
+        try:
+            r = self.session.post(
+                f"{self.base_url}/completion",
+                json=native_payload, timeout=15,
+            )
+            if r.status_code == 200:
+                self._endpoint_mode = _ENDPOINT_NATIVE
+                console.print(f"[green]  Endpoint:[/green] /completion (native) ✓")
+                return True
+            else:
+                if self.diagnose:
+                    console.print(f"[dim]  /completion → {r.status_code}: {r.text[:300]}[/dim]")
+        except requests.RequestException as e:
+            if self.diagnose:
+                console.print(f"[dim]  /completion error: {e}[/dim]")
+
+        return False
+
+    # Legacy alias so existing call sites still work
+    def health_check(self) -> bool:
+        return self.probe()
+
+    # ------------------------------------------------------------------
+    # Completion
+    # ------------------------------------------------------------------
     def complete(
         self,
         prompt: str,
@@ -421,62 +481,102 @@ class LlamaCppClient:
     ) -> tuple[str, TimingMetrics, Optional[str]]:
         """
         Returns (response_text, metrics, error_string_or_None).
-        Uses /v1/chat/completions (OpenAI-compatible endpoint).
+        Automatically uses whichever endpoint was detected by probe().
         """
+        if self._endpoint_mode == _ENDPOINT_NATIVE:
+            return self._complete_native(prompt, system_prompt, max_tokens, temperature)
+        else:
+            return self._complete_chat(prompt, system_prompt, max_tokens, temperature)
+
+    def _complete_chat(
+        self, prompt: str, system_prompt: str, max_tokens: int, temperature: float
+    ) -> tuple[str, TimingMetrics, Optional[str]]:
+        # NOTE: do NOT include "model" or "stream" — some llama.cpp builds reject them
         payload = {
-            "model": "local",
             "messages": [
                 {"role": "system", "content": system_prompt},
-                {"role": "user", "content": prompt},
+                {"role": "user",   "content": prompt},
             ],
             "max_tokens": max_tokens,
             "temperature": temperature,
-            "stream": False,
         }
-
         wall_start = time.perf_counter()
         try:
             resp = self.session.post(
                 f"{self.base_url}/v1/chat/completions",
-                json=payload,
-                timeout=self.timeout,
+                json=payload, timeout=self.timeout,
             )
-            resp.raise_for_status()
+            if resp.status_code != 200:
+                wall_ms = (time.perf_counter() - wall_start) * 1000
+                err = f"HTTP {resp.status_code}"
+                if self.diagnose:
+                    err += f": {resp.text[:400]}"
+                return "", TimingMetrics(total_wall_time_ms=wall_ms), err
         except requests.RequestException as e:
             wall_ms = (time.perf_counter() - wall_start) * 1000
-            print(e)
             return "", TimingMetrics(total_wall_time_ms=wall_ms), str(e)
 
         wall_ms = (time.perf_counter() - wall_start) * 1000
         data = resp.json()
-
         text = ""
         try:
             text = data["choices"][0]["message"]["content"]
         except (KeyError, IndexError):
             pass
+        return text, self._extract_metrics(data, wall_ms), None
 
+    def _complete_native(
+        self, prompt: str, system_prompt: str, max_tokens: int, temperature: float
+    ) -> tuple[str, TimingMetrics, Optional[str]]:
+        # llama.cpp native /completion endpoint — system prompt goes in the prompt string
+        full_prompt = f"### System:\n{system_prompt}\n\n### User:\n{prompt}\n\n### Assistant:\n"
+        payload = {
+            "prompt": full_prompt,
+            "n_predict": max_tokens,
+            "temperature": temperature,
+        }
+        wall_start = time.perf_counter()
+        try:
+            resp = self.session.post(
+                f"{self.base_url}/completion",
+                json=payload, timeout=self.timeout,
+            )
+            if resp.status_code != 200:
+                wall_ms = (time.perf_counter() - wall_start) * 1000
+                err = f"HTTP {resp.status_code}"
+                if self.diagnose:
+                    err += f": {resp.text[:400]}"
+                return "", TimingMetrics(total_wall_time_ms=wall_ms), err
+        except requests.RequestException as e:
+            wall_ms = (time.perf_counter() - wall_start) * 1000
+            return "", TimingMetrics(total_wall_time_ms=wall_ms), str(e)
+
+        wall_ms = (time.perf_counter() - wall_start) * 1000
+        data = resp.json()
+        text = data.get("content", "")
+        return text, self._extract_metrics(data, wall_ms), None
+
+    def _extract_metrics(self, data: dict, wall_ms: float) -> TimingMetrics:
         metrics = TimingMetrics(total_wall_time_ms=wall_ms)
-        # llama.cpp injects a `timings` block into the response
         timings = data.get("timings") or {}
         if timings:
-            pt = timings.get("prompt_n", timings.get("prompt_eval_n", 0))
-            pt_ms = timings.get("prompt_ms", timings.get("prompt_eval_ms", 0.0))
-            gt = timings.get("predicted_n", timings.get("eval_n", 0))
-            gt_ms = timings.get("predicted_ms", timings.get("eval_ms", 0.0))
-            metrics.prompt_tokens = int(pt)
+            pt    = timings.get("prompt_n",        timings.get("prompt_eval_n", 0))
+            pt_ms = timings.get("prompt_ms",        timings.get("prompt_eval_ms", 0.0))
+            gt    = timings.get("predicted_n",      timings.get("eval_n", 0))
+            gt_ms = timings.get("predicted_ms",     timings.get("eval_ms", 0.0))
+            metrics.prompt_tokens       = int(pt)
             metrics.prompt_eval_time_ms = float(pt_ms)
-            metrics.prompt_speed_tok_s = float(timings.get("prompt_per_second", pt / (pt_ms / 1000) if pt_ms > 0 else 0))
-            metrics.gen_tokens = int(gt)
-            metrics.gen_time_ms = float(gt_ms)
-            metrics.gen_speed_tok_s = float(timings.get("predicted_per_second", gt / (gt_ms / 1000) if gt_ms > 0 else 0))
+            metrics.prompt_speed_tok_s  = float(timings.get(
+                "prompt_per_second", pt / (pt_ms / 1000) if pt_ms > 0 else 0))
+            metrics.gen_tokens    = int(gt)
+            metrics.gen_time_ms   = float(gt_ms)
+            metrics.gen_speed_tok_s = float(timings.get(
+                "predicted_per_second", gt / (gt_ms / 1000) if gt_ms > 0 else 0))
         else:
-            # Fall back to usage block if timings not present
             usage = data.get("usage", {})
             metrics.prompt_tokens = usage.get("prompt_tokens", 0)
-            metrics.gen_tokens = usage.get("completion_tokens", 0)
-
-        return text, metrics, None
+            metrics.gen_tokens    = usage.get("completion_tokens", 0)
+        return metrics
 
 
 # ---------------------------------------------------------------------------
@@ -704,6 +804,7 @@ def main():
     parser.add_argument("--categories", default=None,         help="Comma-separated categories to run (e.g. Math,Code)")
     parser.add_argument("--output",     default=None,         help="Save JSON results to this file")
     parser.add_argument("--verbose",    action="store_true",  help="Print each model response")
+    parser.add_argument("--diagnose",   action="store_true",  help="Print raw server error bodies to debug 400s")
     parser.add_argument("--list",       action="store_true",  help="List all exercises and exit")
     args = parser.parse_args()
 
@@ -724,12 +825,17 @@ def main():
         console.print(f"  Filter : [cyan]{', '.join(categories)}[/cyan]")
     console.print()
 
-    client = LlamaCppClient(host=args.host, port=args.port)
+    client = LlamaCppClient(host=args.host, port=args.port, diagnose=args.diagnose)
 
-    console.print("[dim]Checking server health...[/dim]")
-    if not client.health_check():
-        console.print(f"[bold red]ERROR:[/bold red] Cannot reach server at {args.host}:{args.port}. "
-                      "Is llama.cpp running? (e.g. llama-server --port 8080)")
+    console.print("[dim]Probing server — detecting endpoint...[/dim]")
+    if not client.probe():
+        console.print(
+            f"\n[bold red]ERROR:[/bold red] Could not connect to a working endpoint at "
+            f"[cyan]{args.host}:{args.port}[/cyan].\n"
+            f"  Tried /v1/chat/completions and /completion — both failed.\n"
+            f"  Is llama-server running?  e.g. [dim]llama-server -m model.gguf --port 8080[/dim]\n"
+            f"  Re-run with [dim]--diagnose[/dim] to see the raw server error."
+        )
         sys.exit(1)
     console.print("[green]Server is up.[/green]\n")
 
