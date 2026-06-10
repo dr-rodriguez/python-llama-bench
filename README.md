@@ -2,7 +2,7 @@
 
 A python script to help benchmark local AI models.
 
-Coded with assistance from Claude (Sonnet 4.6).
+Coded with assistance from Claude (Sonnet 4.6, Opus 4.6).
 
 ## Initial prompt:
 > Generate a plan for a python script that will help benchmark local AI models running llama.cpp. I'll be running the server and want to capture things like prompt-processing and token generation speeds, as well as total execution time. I want the script to have a series of exercises, at least 20, that it runs through with verifiable results so it can output success metrics, like 14/20 pass or something like that.

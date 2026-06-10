@@ -343,6 +343,7 @@ def build_exercises() -> list[Exercise]:
             description="Answer in exactly one word",
             prompt="What is the opposite of 'hot'? Reply with exactly one word.",
             validator=regex_match(r'^\s*\w+\s*$'),
+            max_tokens=1024,
         ),
 
         # ── Code Generation ───────────────────────────────────────────────────
@@ -393,6 +394,7 @@ def build_exercises() -> list[Exercise]:
                 f"Be concise.\n\n{SUMMARY_TEXT}"
             ),
             validator=word_count_lte(40),
+            max_tokens=1024,
         ),
     ]
 
@@ -1048,7 +1050,7 @@ def main():
             console.print("\n[bold]Available models on this server:[/bold]")
             for m in models:
                 console.print(f"  • {m}")
-            console.print(f"\nUse [dim]--model <name>[/dim] to target one.")
+            console.print("\nUse [dim]--model <name>[/dim] to target one.")
         else:
             console.print("[yellow]No models returned by /v1/models (server may not support listing).[/yellow]")
         return
@@ -1064,8 +1066,8 @@ def main():
             )
         else:
             hint = (
-                f"\n  Run [dim]--list-models[/dim] to see what model names the server expects."
-                f"\n  Add [dim]--diagnose[/dim] to print the raw server error body."
+                "\n  Run [dim]--list-models[/dim] to see what model names the server expects."
+                "\n  Add [dim]--diagnose[/dim] to print the raw server error body."
             )
         console.print(
             f"\n[bold red]ERROR:[/bold red] Could not connect to a working endpoint at "
