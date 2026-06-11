@@ -463,14 +463,16 @@ class LlamaCppClient:
         model: str = "",
         timeout: int = 240,  # longer timeout for larger models
         diagnose: bool = False,
+        ollama: bool = False,
     ):
         self.base_url = f"http://{host}:{port}"
         self.model = model          # passed through in every request payload
         self.timeout = timeout
         self.diagnose = diagnose
+        self.ollama = ollama        # force the Ollama pathway (skip auto-detection)
         self.session = requests.Session()
         self._endpoint_mode: Optional[str] = None   # set by probe()
-        self._server_type: str = _SERVER_LLAMACPP   # set by probe()
+        self._server_type: str = _SERVER_OLLAMA if ollama else _SERVER_LLAMACPP
 
     # ------------------------------------------------------------------
     # Model discovery
@@ -513,8 +515,11 @@ class LlamaCppClient:
         router-mode servers started with --models-preset.
         Sets self._endpoint_mode and returns True if the server is usable.
         """
-        # 1. Detect Ollama early — it also serves /v1/chat/completions but without timings
-        if self._is_ollama():
+        # 1. Use the Ollama pathway when explicitly requested (--ollama) or, as a
+        #    fallback, when the server identifies itself as Ollama via /api/version.
+        #    Ollama also serves /v1/chat/completions but without timings, so we
+        #    prefer its native /api/chat endpoint.
+        if self.ollama or self._is_ollama():
             ollama_payload: dict = {
                 "model": self.model or "",
                 "messages": [{"role": "user", "content": "Hi"}],
@@ -541,8 +546,9 @@ class LlamaCppClient:
             if not self.model:
                 available = self.list_models()
                 if available:
+                    detected = "selected via --ollama" if self.ollama else "detected"
                     console.print(
-                        f"[yellow]  Hint:[/yellow] Ollama detected but probe failed.\n"
+                        f"[yellow]  Hint:[/yellow] Ollama {detected} but probe failed.\n"
                         f"  Available models: {', '.join(available)}\n"
                         f"  Re-run with e.g. [dim]--model {available[0]}[/dim]"
                     )
@@ -1078,8 +1084,9 @@ def main():
         description="Benchmark a llama.cpp or Ollama server — measures PP/TG speeds and correctness."
     )
     parser.add_argument("--host",       default="localhost",  help="Server host (default: localhost)")
-    parser.add_argument("--port",       default=8080, type=int, help="Server port (default: 8080 for llama.cpp, 11434 for Ollama)")
+    parser.add_argument("--port",       default=None, type=int, help="Server port (default: 8080 for llama.cpp, 11434 for Ollama)")
     parser.add_argument("--model",      default="local",      help="Model name label for output (default: local)")
+    parser.add_argument("--ollama",     action="store_true",  help="Use Ollama endpoints (/api/chat) instead of auto-detecting the server type")
     parser.add_argument("--repeat",     default=1,  type=int, help="Runs per exercise — median is reported (default: 1)")
     parser.add_argument("--categories", default=None,         help="Comma-separated categories to run (e.g. Math,Code)")
     parser.add_argument("--output",     default=None,         help="Save JSON results to this file")
@@ -1089,6 +1096,10 @@ def main():
                         help="Query the server for available model names and exit")
     parser.add_argument("--list",       action="store_true",  help="List all exercises and exit")
     args = parser.parse_args()
+
+    # Port defaults depend on the server type: 11434 for Ollama, 8080 for llama.cpp.
+    if args.port is None:
+        args.port = 11434 if args.ollama else 8080
 
     exercises = build_exercises()
 
@@ -1101,6 +1112,7 @@ def main():
 
     console.print("\n[bold]LLM Benchmark (llama.cpp / Ollama)[/bold]")
     console.print(f"  Server : [cyan]{args.host}:{args.port}[/cyan]")
+    console.print(f"  Backend: [cyan]{'Ollama' if args.ollama else 'auto-detect'}[/cyan]")
     console.print(f"  Model  : [cyan]{args.model}[/cyan]")
     console.print(f"  Repeats: [cyan]{args.repeat}[/cyan]")
     if categories:
@@ -1112,6 +1124,7 @@ def main():
         port=args.port,
         model=args.model,
         diagnose=args.diagnose,
+        ollama=args.ollama,
     )
 
     # --list-models: just print available models and exit
