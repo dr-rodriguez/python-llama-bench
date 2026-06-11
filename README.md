@@ -21,8 +21,8 @@ Can activate with `source .venv/bin/activate`
 ### Benchmark an Ollama server (defaults to localhost:11434)
 `python llama_bench.py --ollama --model llama3`
 
-The `--ollama` flag explicitly activates the Ollama endpoints (`/api/chat`)
-instead of auto-detecting the server type, and defaults the port to `11434`.
+The `--ollama` flag activates the Ollama endpoints (`/api/chat`) and defaults
+the port to `11434`. Without it, the llama.cpp endpoints are used.
 
 ### Filter to just math and code, run each 3 times (reports median)
 `python llama_bench.py --model llama3 --categories Math,Code --repeat 3`

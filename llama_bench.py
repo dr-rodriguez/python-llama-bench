@@ -498,16 +498,6 @@ class LlamaCppClient:
     # ------------------------------------------------------------------
     # Probe: figure out which endpoint + payload shape this server accepts
     # ------------------------------------------------------------------
-    def _is_ollama(self) -> bool:
-        """Return True if the server identifies itself as Ollama via /api/version."""
-        try:
-            r = self.session.get(f"{self.base_url}/api/version", timeout=5)
-            if r.status_code == 200:
-                return "version" in r.json()
-        except requests.RequestException:
-            pass
-        return False
-
     def probe(self) -> bool:
         """
         Try /health, then attempt a one-token completion on each known endpoint.
@@ -515,11 +505,10 @@ class LlamaCppClient:
         router-mode servers started with --models-preset.
         Sets self._endpoint_mode and returns True if the server is usable.
         """
-        # 1. Use the Ollama pathway when explicitly requested (--ollama) or, as a
-        #    fallback, when the server identifies itself as Ollama via /api/version.
-        #    Ollama also serves /v1/chat/completions but without timings, so we
-        #    prefer its native /api/chat endpoint.
-        if self.ollama or self._is_ollama():
+        # 1. Use the Ollama pathway when explicitly requested via --ollama. Ollama
+        #    also serves /v1/chat/completions but without timings, so we prefer its
+        #    native /api/chat endpoint.
+        if self.ollama:
             ollama_payload: dict = {
                 "model": self.model or "",
                 "messages": [{"role": "user", "content": "Hi"}],
@@ -546,9 +535,8 @@ class LlamaCppClient:
             if not self.model:
                 available = self.list_models()
                 if available:
-                    detected = "selected via --ollama" if self.ollama else "detected"
                     console.print(
-                        f"[yellow]  Hint:[/yellow] Ollama {detected} but probe failed.\n"
+                        f"[yellow]  Hint:[/yellow] --ollama set but the /api/chat probe failed.\n"
                         f"  Available models: {', '.join(available)}\n"
                         f"  Re-run with e.g. [dim]--model {available[0]}[/dim]"
                     )
@@ -1086,7 +1074,7 @@ def main():
     parser.add_argument("--host",       default="localhost",  help="Server host (default: localhost)")
     parser.add_argument("--port",       default=None, type=int, help="Server port (default: 8080 for llama.cpp, 11434 for Ollama)")
     parser.add_argument("--model",      default="local",      help="Model name label for output (default: local)")
-    parser.add_argument("--ollama",     action="store_true",  help="Use Ollama endpoints (/api/chat) instead of auto-detecting the server type")
+    parser.add_argument("--ollama",     action="store_true",  help="Use the Ollama backend (/api/chat); otherwise the llama.cpp endpoints are used")
     parser.add_argument("--repeat",     default=1,  type=int, help="Runs per exercise — median is reported (default: 1)")
     parser.add_argument("--categories", default=None,         help="Comma-separated categories to run (e.g. Math,Code)")
     parser.add_argument("--output",     default=None,         help="Save JSON results to this file")
@@ -1112,7 +1100,7 @@ def main():
 
     console.print("\n[bold]LLM Benchmark (llama.cpp / Ollama)[/bold]")
     console.print(f"  Server : [cyan]{args.host}:{args.port}[/cyan]")
-    console.print(f"  Backend: [cyan]{'Ollama' if args.ollama else 'auto-detect'}[/cyan]")
+    console.print(f"  Backend: [cyan]{'Ollama' if args.ollama else 'llama.cpp'}[/cyan]")
     console.print(f"  Model  : [cyan]{args.model}[/cyan]")
     console.print(f"  Repeats: [cyan]{args.repeat}[/cyan]")
     if categories:
