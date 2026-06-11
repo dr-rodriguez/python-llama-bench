@@ -410,6 +410,50 @@ _ENDPOINT_OLLAMA  = "ollama"   # POST /api/chat             (Ollama native)
 _SERVER_LLAMACPP = "llamacpp"
 _SERVER_OLLAMA   = "ollama"
 
+# Stop sequences for the native /completion path so the model can't run past
+# its answer and start hallucinating extra "### User:/### Assistant:" turns.
+_NATIVE_STOP = ["### User:", "### System:", "### Assistant:", "</s>",
+                "<|im_end|>", "<|eot_id|>", "<|end|>"]
+
+# Reasoning models represent chain-of-thought differently. We only score the
+# final answer, so strip whichever form a given model uses:
+#   • XML-ish tags:  <think>...</think>, <thinking>...</thinking>   (Qwen, etc.)
+#   • Harmony channels: <|channel|>analysis<|message|>...<|channel|>final<|message|>ANSWER  (gpt-oss)
+# Note: a model run through the raw /completion endpoint (no chat template) may
+# emit *untagged* reasoning that cannot be stripped reliably — the fix for that
+# is using the chat endpoint, not this function.
+_THINK_RE = re.compile(r"<(think|thinking)>.*?</\1>", re.DOTALL | re.IGNORECASE)
+_HARMONY_FINAL_RE = re.compile(
+    r"<\|channel\|>\s*final\s*<\|message\|>(.*?)(?:<\|(?:end|return)\|>|$)",
+    re.DOTALL | re.IGNORECASE,
+)
+_HARMONY_TOKEN_RE = re.compile(r"<\|[^|>]*\|>")
+
+
+def strip_thinking(text: str) -> str:
+    """Remove reasoning/thinking blocks, keeping only the final answer text."""
+    if not text:
+        return text
+
+    # Harmony format: keep only the content of the `final` channel.
+    if "<|channel|>" in text.lower():
+        finals = _HARMONY_FINAL_RE.findall(text)
+        if finals:
+            text = finals[-1]
+        else:
+            # Only an (unfinished) analysis channel — strip the control tokens.
+            text = _HARMONY_TOKEN_RE.sub("", text)
+
+    cleaned = _THINK_RE.sub("", text)
+    # Unclosed block (model hit the token cap mid-thought): drop from the tag on.
+    lower = cleaned.lower()
+    for tag in ("<think>", "<thinking>"):
+        idx = lower.rfind(tag)
+        if idx != -1 and ("</" + tag[1:]) not in lower[idx:]:
+            cleaned = cleaned[:idx]
+            lower = cleaned.lower()
+    return cleaned.strip()
+
 
 class LlamaCppClient:
     def __init__(
@@ -521,22 +565,32 @@ class LlamaCppClient:
         if self.model:
             chat_payload["model"] = self.model
 
-        try:
-            r = self.session.post(
-                f"{self.base_url}/v1/chat/completions",
-                json=chat_payload, timeout=15,
-            )
-            if r.status_code == 200:
-                self._endpoint_mode = _ENDPOINT_CHAT
-                model_label = f" (model: {self.model})" if self.model else ""
-                console.print(f"[green]  Endpoint:[/green] /v1/chat/completions{model_label} ✓")
-                return True
-            else:
+        # Prefer the chat endpoint for llama.cpp: it applies the model's own chat
+        # template and stop tokens. If the probe fails with a model set (e.g. a
+        # preset/router build that rejects an unknown model id), retry without it
+        # before falling through to the raw /completion path.
+        chat_variants = [chat_payload]
+        if self.model:
+            no_model = {k: v for k, v in chat_payload.items() if k != "model"}
+            chat_variants.append(no_model)
+
+        for variant in chat_variants:
+            try:
+                r = self.session.post(
+                    f"{self.base_url}/v1/chat/completions",
+                    json=variant, timeout=15,
+                )
+                if r.status_code == 200:
+                    self._endpoint_mode = _ENDPOINT_CHAT
+                    model_label = f" (model: {self.model})" if self.model else ""
+                    console.print(f"[green]  Endpoint:[/green] /v1/chat/completions{model_label} ✓")
+                    return True
+                else:
+                    if self.diagnose:
+                        console.print(f"[dim]  /v1/chat/completions → {r.status_code}: {r.text[:400]}[/dim]")
+            except requests.RequestException as e:
                 if self.diagnose:
-                    console.print(f"[dim]  /v1/chat/completions → {r.status_code}: {r.text[:400]}[/dim]")
-        except requests.RequestException as e:
-            if self.diagnose:
-                console.print(f"[dim]  /v1/chat/completions error: {e}[/dim]")
+                    console.print(f"[dim]  /v1/chat/completions error: {e}[/dim]")
 
         # 3. Try native /completion endpoint (llama.cpp)
         native_payload: dict = {
@@ -593,11 +647,13 @@ class LlamaCppClient:
     ) -> tuple[str, TimingMetrics, Optional[str]]:
         """Returns (response_text, metrics, error_or_None). Uses detected endpoint."""
         if self._endpoint_mode == _ENDPOINT_NATIVE:
-            return self._complete_native(prompt, system_prompt, max_tokens, temperature)
+            text, metrics, error = self._complete_native(prompt, system_prompt, max_tokens, temperature)
         elif self._endpoint_mode == _ENDPOINT_OLLAMA:
-            return self._complete_ollama(prompt, system_prompt, max_tokens, temperature)
+            text, metrics, error = self._complete_ollama(prompt, system_prompt, max_tokens, temperature)
         else:
-            return self._complete_chat(prompt, system_prompt, max_tokens, temperature)
+            text, metrics, error = self._complete_chat(prompt, system_prompt, max_tokens, temperature)
+        # Reasoning models emit chain-of-thought we don't want to score.
+        return strip_thinking(text), metrics, error
 
     def _complete_chat(
         self, prompt: str, system_prompt: str, max_tokens: int, temperature: float
@@ -654,6 +710,8 @@ class LlamaCppClient:
             "prompt": full_prompt,
             "n_predict": max_tokens,
             "temperature": temperature,
+            "stop": _NATIVE_STOP,
+            "cache_prompt": False,
         }
         if self.model:
             payload["model"] = self.model
@@ -724,14 +782,9 @@ class LlamaCppClient:
         try:
             message = data["message"]
             content = message.get("content")
-            thinking = message.get("thinking")
+            # Ignore the separate `thinking` field — we only score the final answer.
             if content:
                 text = content
-            elif thinking:
-                text = thinking
-                parse_error = "content empty; fell back to thinking field (token budget may be too low)"
-                if self.diagnose:
-                    console.print(f"[dim]  _complete_ollama: content empty, using thinking field[/dim]")
             else:
                 parse_error = "response content was null"
                 if self.diagnose:
@@ -810,9 +863,9 @@ def run_benchmarks(
 
     for ex in filtered:
         run_metrics: list[TimingMetrics] = []
-        last_text = ""
-        last_error = None
-        last_passed = False
+        run_passed: list[bool] = []
+        run_texts: list[str] = []
+        run_errors: list[Optional[str]] = []
 
         for run_i in range(repeat):
             done += 1
@@ -826,24 +879,42 @@ def run_benchmarks(
                 system_prompt=ex.system_prompt,
                 max_tokens=ex.max_tokens,
             )
-            last_text = text
-            last_error = error
 
             if error and not text:
-                last_passed = False
+                passed = False
             else:
                 try:
-                    last_passed = ex.validator(text)
+                    passed = ex.validator(text)
                 except Exception as ve:
-                    last_passed = False
-                    last_error = f"Validator error: {ve}"
+                    passed = False
+                    error = f"Validator error: {ve}"
 
             run_metrics.append(metrics)
+            run_passed.append(passed)
+            run_texts.append(text)
+            run_errors.append(error)
 
             if verbose:
-                status = "[green]PASS[/green]" if last_passed else "[red]FAIL[/red]"
+                status = "[green]PASS[/green]" if passed else "[red]FAIL[/red]"
                 console.print(f"    Response: [italic]{text[:120]}[/italic]")
                 console.print(f"    Result: {status}")
+
+        # Majority vote across runs: pass only if a strict majority passed.
+        # (Even split counts as a fail, since it isn't a majority.)
+        n_pass = sum(run_passed)
+        ex_passed = n_pass * 2 > repeat
+
+        # Show a representative response/error that agrees with the verdict:
+        # the last passing run if we passed, else the last failing run.
+        rep_idx = next(
+            (i for i in range(repeat - 1, -1, -1) if run_passed[i] == ex_passed),
+            repeat - 1,
+        )
+        rep_text = run_texts[rep_idx]
+        rep_error = run_errors[rep_idx]
+        if repeat > 1:
+            vote = f"{n_pass}/{repeat} runs passed"
+            rep_error = f"{rep_error}; {vote}" if rep_error else (None if ex_passed else vote)
 
         # Use median metrics across runs
         def median_field(field_name: str) -> float:
@@ -865,10 +936,10 @@ def run_benchmarks(
             exercise_id=ex.id,
             category=ex.category,
             description=ex.description,
-            passed=last_passed,
-            response_text=last_text,
+            passed=ex_passed,
+            response_text=rep_text,
             metrics=median_metrics,
-            error=last_error,
+            error=rep_error,
         ))
 
     return results
