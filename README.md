@@ -48,4 +48,10 @@ python llama_bench.py --model gemma4:26b-moe --output data/gemma4-26b-moe.json -
 python llama_bench.py --model bonsai:8b --output data/bonsai-8b.json --repeat 3
 
 python bench_report.py
+
+# Mac tests
+python llama_bench.py --ollama --model gemma4:12b-mlx --output data/gemma4-12b-mlx.json --repeat 3
+python llama_bench.py --ollama --model qwen3.6:27b-coding-nvfp4 --output data/qwen3.6-27b-coding-nvfp4.json --repeat 3
+python llama_bench.py --ollama --model gemma4:26b-nvfp4 --output data/gemma4-26b-nvfp4.json --repeat 3
+python llama_bench.py --ollama --model qwen3.6:35b-a3b-nvfp4 --output data/qwen3.6-35b-a3b-nvfp4.json --repeat 3
 ```
