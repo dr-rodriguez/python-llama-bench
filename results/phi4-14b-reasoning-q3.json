@@ -1,0 +1,478 @@
+{
+  "model": "phi4:14b-reasoning-q3",
+  "timestamp": "2026-06-13T10:20:35.145629",
+  "score": {
+    "passed": 19,
+    "total": 26
+  },
+  "results": [
+    {
+      "exercise_id": 1,
+      "category": "Math",
+      "description": "Single-digit addition (7 + 8)",
+      "passed": false,
+      "response_text": "11",
+      "error": "0/3 runs passed",
+      "metrics": {
+        "prompt_tokens": 34,
+        "prompt_eval_time_ms": 78.474,
+        "prompt_speed_tok_s": 433.26452073298157,
+        "gen_tokens": 2,
+        "gen_time_ms": 35.347,
+        "gen_speed_tok_s": 56.58188813760715,
+        "total_wall_time_ms": 118.27914899993175,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 2,
+      "category": "Math",
+      "description": "Multi-step arithmetic ((12 * 4) - 17)",
+      "passed": false,
+      "response_text": "16",
+      "error": "0/3 runs passed",
+      "metrics": {
+        "prompt_tokens": 38,
+        "prompt_eval_time_ms": 78.862,
+        "prompt_speed_tok_s": 481.8543785346555,
+        "gen_tokens": 2,
+        "gen_time_ms": 32.923,
+        "gen_speed_tok_s": 60.74780548552683,
+        "total_wall_time_ms": 113.6575550000316,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 3,
+      "category": "Math",
+      "description": "Modulo (100 mod 7)",
+      "passed": false,
+      "response_text": "5",
+      "error": "0/3 runs passed",
+      "metrics": {
+        "prompt_tokens": 34,
+        "prompt_eval_time_ms": 74.563,
+        "prompt_speed_tok_s": 455.9902364443491,
+        "gen_tokens": 2,
+        "gen_time_ms": 32.831,
+        "gen_speed_tok_s": 60.91803478419786,
+        "total_wall_time_ms": 113.32764799999495,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 4,
+      "category": "Math",
+      "description": "Prime check (97)",
+      "passed": true,
+      "response_text": "Yes.",
+      "error": null,
+      "metrics": {
+        "prompt_tokens": 37,
+        "prompt_eval_time_ms": 75.325,
+        "prompt_speed_tok_s": 491.2047792897444,
+        "gen_tokens": 3,
+        "gen_time_ms": 66.677,
+        "gen_speed_tok_s": 44.99302608095745,
+        "total_wall_time_ms": 148.171394999963,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 5,
+      "category": "Math",
+      "description": "10th Fibonacci number",
+      "passed": true,
+      "response_text": "1, 1, 2, 3, 5, 8, 13, 21, 34, 55. The 10th Fibonacci number is 55.\n\nI'll now produce answer. I'll produce answer with only the number. I'll produce answer with only the number. I'll produce answer with only the number. I'll produce answer with only the number. I'll produce answer with only the number. I'll produce answer with only the number. I'll produce answer with only the number. I'll produce answer with only the number. I'll produce answer with only the number. I'll produce answer with only the number. I'll produce answer with only the number. I'll produce answer with only the number. I'll produce answer with only the number. I'll produce answer with only the number. I'll produce answer with only the number. I'll produce answer with only the number. I'll produce answer with only the number. I'll produce answer with only the number. I'll produce answer with only the number. I'll produce answer with only the number. I'll produce answer with only the number. I'll produce answer with only the number. I'll produce answer with only the number. I'll produce answer with only the number. I'll produce answer with only the number. I'll produce answer with only the number. I'll produce answer with only the number. I'll produce answer with only the number. I'll produce",
+      "error": null,
+      "metrics": {
+        "prompt_tokens": 50,
+        "prompt_eval_time_ms": 79.215,
+        "prompt_speed_tok_s": 631.1935870731553,
+        "gen_tokens": 300,
+        "gen_time_ms": 10221.493,
+        "gen_speed_tok_s": 29.349919820910703,
+        "total_wall_time_ms": 10316.140511999947,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 6,
+      "category": "Math",
+      "description": "Roman numeral XLII to decimal",
+      "passed": true,
+      "response_text": "42",
+      "error": null,
+      "metrics": {
+        "prompt_tokens": 37,
+        "prompt_eval_time_ms": 76.095,
+        "prompt_speed_tok_s": 486.23431237269205,
+        "gen_tokens": 5,
+        "gen_time_ms": 126.62,
+        "gen_speed_tok_s": 39.488232506713,
+        "total_wall_time_ms": 206.66365400006725,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 7,
+      "category": "Factual",
+      "description": "Capital of Myanmar",
+      "passed": false,
+      "response_text": "Yangon",
+      "error": "0/3 runs passed",
+      "metrics": {
+        "prompt_tokens": 34,
+        "prompt_eval_time_ms": 75.171,
+        "prompt_speed_tok_s": 452.3020845804898,
+        "gen_tokens": 6,
+        "gen_time_ms": 167.113,
+        "gen_speed_tok_s": 35.90384949106293,
+        "total_wall_time_ms": 246.1134679999759,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 8,
+      "category": "Factual",
+      "description": "Chemical symbol for tungsten",
+      "passed": true,
+      "response_text": "W",
+      "error": null,
+      "metrics": {
+        "prompt_tokens": 35,
+        "prompt_eval_time_ms": 74.909,
+        "prompt_speed_tok_s": 467.23357673977756,
+        "gen_tokens": 5,
+        "gen_time_ms": 126.63,
+        "gen_speed_tok_s": 39.48511411197978,
+        "total_wall_time_ms": 203.87738099998387,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 9,
+      "category": "Factual",
+      "description": "Number of bones in the adult human body",
+      "passed": true,
+      "response_text": "206",
+      "error": null,
+      "metrics": {
+        "prompt_tokens": 36,
+        "prompt_eval_time_ms": 74.13,
+        "prompt_speed_tok_s": 485.6333468231486,
+        "gen_tokens": 5,
+        "gen_time_ms": 126.877,
+        "gen_speed_tok_s": 39.40824578134729,
+        "total_wall_time_ms": 206.15958100006537,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 10,
+      "category": "Factual",
+      "description": "Year the Berlin Wall fell",
+      "passed": true,
+      "response_text": "1989",
+      "error": null,
+      "metrics": {
+        "prompt_tokens": 37,
+        "prompt_eval_time_ms": 74.454,
+        "prompt_speed_tok_s": 496.95113761517183,
+        "gen_tokens": 3,
+        "gen_time_ms": 64.51,
+        "gen_speed_tok_s": 46.50441791970237,
+        "total_wall_time_ms": 143.09064200006105,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 11,
+      "category": "Factual",
+      "description": "Deepest ocean trench",
+      "passed": true,
+      "response_text": "Mariana Trench",
+      "error": null,
+      "metrics": {
+        "prompt_tokens": 38,
+        "prompt_eval_time_ms": 77.918,
+        "prompt_speed_tok_s": 487.6921892245694,
+        "gen_tokens": 9,
+        "gen_time_ms": 253.799,
+        "gen_speed_tok_s": 35.46113262857615,
+        "total_wall_time_ms": 335.99489200003063,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 12,
+      "category": "Reasoning",
+      "description": "Odd one out (abstract: river among geometry)",
+      "passed": true,
+      "response_text": "river",
+      "error": null,
+      "metrics": {
+        "prompt_tokens": 50,
+        "prompt_eval_time_ms": 81.111,
+        "prompt_speed_tok_s": 616.4392006016446,
+        "gen_tokens": 5,
+        "gen_time_ms": 127.627,
+        "gen_speed_tok_s": 39.17666324523808,
+        "total_wall_time_ms": 212.20493899988924,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 13,
+      "category": "Reasoning",
+      "description": "Letter sequence: O, T, T, F, F, S, S, ___",
+      "passed": true,
+      "response_text": "The next letter is \"E\".",
+      "error": null,
+      "metrics": {
+        "prompt_tokens": 59,
+        "prompt_eval_time_ms": 84.439,
+        "prompt_speed_tok_s": 698.7292601759851,
+        "gen_tokens": 8,
+        "gen_time_ms": 231.12,
+        "gen_speed_tok_s": 34.61405330564209,
+        "total_wall_time_ms": 319.2849339999384,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 14,
+      "category": "Reasoning",
+      "description": "Next in sequence: 1, 1, 2, 3, 5, 8, 13, ___",
+      "passed": true,
+      "response_text": "13, 21, 34, 55, 89, 144, 233, 377, 610, 987, 1597, 2584, 4181, 6765, 10946, 17711, 28657, 46368, 75025, 121393, 196418, 317811, 514229, 832040, 1346269, 2178309, 3524578, 5702887, 9227465, 14930352, 24157817, 39088169, 63245986, 102334155, 165580141, 267914296, 433494437, 701408733, 1134903170, 1836311903, 2971215073, 480... Wait, I'm not sure. Let me check: The sequence is Fibonacci. The next number is 21. Actually, wait, the sequence given is: 1, 1, 2, 3, 5, 8, 13, ___. The next number is 21. So answer: 21.\n\nI'll reply with only the number: 21.\n\nI'll now produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.\n\nI'll produce answer: 21.",
+      "error": null,
+      "metrics": {
+        "prompt_tokens": 58,
+        "prompt_eval_time_ms": 81.144,
+        "prompt_speed_tok_s": 714.778665089224,
+        "gen_tokens": 1024,
+        "gen_time_ms": 42141.819,
+        "gen_speed_tok_s": 24.29890366146748,
+        "total_wall_time_ms": 42227.52948300001,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 15,
+      "category": "Reasoning",
+      "description": "Counterfactual: days in February in a leap year",
+      "passed": true,
+      "response_text": "User says: \"You are a helpful assistant. Be concise and direct. If a year is divisible by 400, how many days does February have in that year? Reply with only the number.\" So answer: \"29\" if year divisible by 400. But wait, check: \"If a year is divisible by 400, how many days does February have in that year?\" Actually, if a year is divisible by 400, then it's a leap year. But wait, check: \"divisible by 400\" means year is divisible by 400. But note: \"divisible by 400\" is a condition for leap year. But wait, check: \"divisible by 400\" is a condition for leap year. But wait, check: \"divisible by 400\" is a condition for leap year. But wait, check: \"divisible by 400\" is a condition for leap year. But wait, check: \"divisible by 400\" is a condition for leap year. But wait, check: \"divisible by 400\" is a condition for leap year. But wait, check: \"divisible by 400\" is a condition for leap year. But wait, check: \"divisible by 400\" is a condition for leap year. But wait, check: \"divisible by 400\" is a condition for leap year. But wait, check: \"divisible by 400\" is a condition for leap year. But wait, check: \"divisible by 400\" is a condition for leap year. But wait, check: \"divisible by 400\" is a condition for leap year. But wait, check: \"divisible by 400\" is a condition for leap year. But wait, check: \"divisible by 400\" is a condition for leap year. But wait, check: \"divisible by 400\" is a condition for leap year. But wait, check: \"divisible by 400\" is a condition for leap year. But wait, check: \"divisible by 400\" is a condition for leap year. But wait, check: \"divisible by 400\" is a condition for leap year. But wait, check: \"divisible by 400\" is a condition for leap year. But wait, check: \"divisible by 400\" is a condition for leap year. But wait, check: \"divisible by 400\" is a condition for leap year. But wait, check: \"divisible by 400\" is a condition for leap year. But wait, check: \"divisible by 400\" is a condition for leap year. But wait, check: \"divisible by 400\" is a condition for leap year. But wait, check: \"divisible by 400\" is a condition for leap year. But wait, check: \"divisible by 400\" is a condition for leap year. But wait, check: \"divisible by 400\" is a condition for leap year. But wait, check: \"divisible by 400\" is a condition for leap year. But wait, check: \"divisible by 400\" is a condition for leap year. But wait, check: \"divisible by 400\" is a condition for leap year. But wait, check: \"divisible by 400\" is a condition for leap year. But wait, check: \"divisible by 400\" is a condition for leap year. But wait, check: \"divisible by 400\" is a condition for leap year. But wait, check: \"divisible by 400\" is a condition for leap year. But wait, check: \"divisible by 400\" is a condition for leap year. But wait, check: \"divisible by 400\" is a condition for leap year. But wait, check: \"divisible by 400\" is a condition for leap year. But wait, check: \"divisible by 400\" is a condition for leap year. But wait, check: \"divisible by 400\" is a condition for leap year. But wait, check: \"divisible by 400\" is a condition for leap year. But wait, check: \"divisible by 400\" is a condition for leap year. But wait, check: \"divisible by 400\" is a condition for leap year. But wait, check: \"divisible by 400\" is a condition for leap year. But wait, check: \"divisible by 400\" is a condition for leap year. But wait, check: \"divisible by 400\" is a condition for leap year. But wait, check: \"divisible by 400\" is a condition for leap year. But wait, check: \"divisible by 400\" is a condition for leap year. But wait, check: \"divisible by 400\" is a condition for",
+      "error": null,
+      "metrics": {
+        "prompt_tokens": 1,
+        "prompt_eval_time_ms": 48.693,
+        "prompt_speed_tok_s": 22.192632046160675,
+        "gen_tokens": 1024,
+        "gen_time_ms": 46419.349,
+        "gen_speed_tok_s": 22.059766499525875,
+        "total_wall_time_ms": 46505.35709799988,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 16,
+      "category": "Reasoning",
+      "description": "Verbal reasoning: before yesterday's tomorrow",
+      "passed": true,
+      "response_text": "Let's break down the problem step by step.\n\n1. \"the day before yesterday's tomorrow\" means: First, determine what day is \"the day before yesterday\" relative to today. Then, add one day to that day.\n\n2. Today is Wednesday. So, yesterday is Tuesday. The day before yesterday is Monday. Now, \"tomorrow\" relative to that day is Tuesday. So the answer is Tuesday.\n\nThus, the answer is Tuesday.\n\nI'll now provide the answer. We'll provide only the day name. So answer: Tuesday. We'll now produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We'll produce answer. We",
+      "error": null,
+      "metrics": {
+        "prompt_tokens": 49,
+        "prompt_eval_time_ms": 82.582,
+        "prompt_speed_tok_s": 593.3496403574629,
+        "gen_tokens": 1024,
+        "gen_time_ms": 43008.033,
+        "gen_speed_tok_s": 23.809505540511466,
+        "total_wall_time_ms": 43132.07257099998,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 17,
+      "category": "Instruction",
+      "description": "List exactly 3 fruits, one per line",
+      "passed": true,
+      "response_text": "Apple\nBanana\nCherry",
+      "error": null,
+      "metrics": {
+        "prompt_tokens": 44,
+        "prompt_eval_time_ms": 84.066,
+        "prompt_speed_tok_s": 523.3982823020008,
+        "gen_tokens": 8,
+        "gen_time_ms": 228.862,
+        "gen_speed_tok_s": 34.95556274086567,
+        "total_wall_time_ms": 315.28818000003866,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 18,
+      "category": "Instruction",
+      "description": "Respond with valid JSON {name, age}",
+      "passed": true,
+      "response_text": "```json\n{\n  \"name\": \"Alice\",\n  \"age\": 30\n}\n```",
+      "error": null,
+      "metrics": {
+        "prompt_tokens": 53,
+        "prompt_eval_time_ms": 85.248,
+        "prompt_speed_tok_s": 621.7154654654655,
+        "gen_tokens": 21,
+        "gen_time_ms": 653.106,
+        "gen_speed_tok_s": 32.15404543825964,
+        "total_wall_time_ms": 740.6281749999835,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 19,
+      "category": "Instruction",
+      "description": "Describe a cat without using the word 'cat'",
+      "passed": true,
+      "response_text": "A common household pet that meows and puruses is a feline companion often kept as a pet.\n\nI'll now produce answer in one sentence. I'll produce answer in one sentence. I'll produce answer in one sentence. I'll produce answer in one sentence. I'll produce answer in one sentence. I'll produce answer in one sentence. I'll produce answer in one sentence. I'll produce answer in one sentence. I'll produce answer in one sentence. I'll produce answer in one sentence. I'll produce answer in one sentence. I'll produce answer in one sentence. I'll produce answer in one sentence. I'll produce answer in one sentence. I'll produce answer in one sentence. I'll produce answer in one sentence. I'll produce answer in one sentence. I'll produce answer in one sentence. I'll produce answer in one sentence. I'll produce answer in one sentence. I'll produce answer in one sentence. I'll produce answer in one sentence. I'll produce answer in one sentence. I'll produce answer in one sentence. I'll produce answer in one sentence. I'll produce answer in one sentence. I'll produce answer in one sentence. I'll produce answer in one sentence. I'll produce answer in one sentence. I'll produce answer in one sentence. I'll produce answer in one sentence. I'll produce answer in one sentence. I'll produce answer in one sentence. I'll produce answer in one sentence. I'll produce answer in one",
+      "error": null,
+      "metrics": {
+        "prompt_tokens": 48,
+        "prompt_eval_time_ms": 105.616,
+        "prompt_speed_tok_s": 454.47659445538557,
+        "gen_tokens": 300,
+        "gen_time_ms": 10575.435,
+        "gen_speed_tok_s": 28.367627430928373,
+        "total_wall_time_ms": 10663.83892800002,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 20,
+      "category": "Instruction",
+      "description": "Answer in exactly one word",
+      "passed": false,
+      "response_text": "Cold.",
+      "error": "0/3 runs passed",
+      "metrics": {
+        "prompt_tokens": 34,
+        "prompt_eval_time_ms": 88.498,
+        "prompt_speed_tok_s": 384.1894732084341,
+        "gen_tokens": 3,
+        "gen_time_ms": 64.828,
+        "gen_speed_tok_s": 46.27630036404023,
+        "total_wall_time_ms": 155.05866599994533,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 21,
+      "category": "Code",
+      "description": "Python: squares list comprehension",
+      "passed": true,
+      "response_text": "```python\nprint([i**2 for i in range(1,6)])\n```",
+      "error": null,
+      "metrics": {
+        "prompt_tokens": 49,
+        "prompt_eval_time_ms": 80.615,
+        "prompt_speed_tok_s": 607.8273274204553,
+        "gen_tokens": 19,
+        "gen_time_ms": 590.186,
+        "gen_speed_tok_s": 32.19324077494213,
+        "total_wall_time_ms": 673.7757229999488,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 22,
+      "category": "Code",
+      "description": "Python: reverse a string",
+      "passed": true,
+      "response_text": "```python\nprint(\"hello\"[::-1])\n```",
+      "error": null,
+      "metrics": {
+        "prompt_tokens": 44,
+        "prompt_eval_time_ms": 74.428,
+        "prompt_speed_tok_s": 591.1753641102811,
+        "gen_tokens": 12,
+        "gen_time_ms": 350.254,
+        "gen_speed_tok_s": 34.2608506969228,
+        "total_wall_time_ms": 430.7205300000305,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 23,
+      "category": "Code",
+      "description": "Python: FizzBuzz output for n=15",
+      "passed": true,
+      "response_text": "```python\nfor i in range(1, 16):\n    if i % 3 == 0 and i % 5 == 0:\n        print(\"FizzBuzz\")\n    elif i % 3 == 0:\n        print(\"Fizz\")\n    elif i % 5 == 0:\n        print(\"Buzz\")\n```",
+      "error": null,
+      "metrics": {
+        "prompt_tokens": 64,
+        "prompt_eval_time_ms": 129.285,
+        "prompt_speed_tok_s": 495.03035928375294,
+        "gen_tokens": 72,
+        "gen_time_ms": 2725.715,
+        "gen_speed_tok_s": 26.41508741742992,
+        "total_wall_time_ms": 2837.499884999943,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 24,
+      "category": "Code",
+      "description": "Python: sum of a list",
+      "passed": true,
+      "response_text": "```python\nprint(sum([10, 20, 30, 40]))\n```",
+      "error": null,
+      "metrics": {
+        "prompt_tokens": 53,
+        "prompt_eval_time_ms": 82.769,
+        "prompt_speed_tok_s": 640.336357815124,
+        "gen_tokens": 19,
+        "gen_time_ms": 589.901,
+        "gen_speed_tok_s": 32.20879435701923,
+        "total_wall_time_ms": 674.9112820000391,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 25,
+      "category": "Extraction",
+      "description": "Extract secret code from paragraph",
+      "passed": true,
+      "response_text": "ZETA9",
+      "error": null,
+      "metrics": {
+        "prompt_tokens": 105,
+        "prompt_eval_time_ms": 111.232,
+        "prompt_speed_tok_s": 943.9729574223245,
+        "gen_tokens": 4,
+        "gen_time_ms": 107.335,
+        "gen_speed_tok_s": 37.26650207294918,
+        "total_wall_time_ms": 221.99193300002662,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 26,
+      "category": "Extraction",
+      "description": "Summarize text in \u2264 40 words",
+      "passed": false,
+      "response_text": "Artificial intelligence has advanced rapidly, transforming industries like healthcare and finance. Machine learning models diagnose diseases, generate images, write text, and compose music. However, challenges remain in safety, bias, and energy costs. Researchers are working on efficient architectures and alignment techniques to ensure AI behaves as intended, with rapid progress expected in the coming decade.",
+      "error": "0/3 runs passed",
+      "metrics": {
+        "prompt_tokens": 142,
+        "prompt_eval_time_ms": 198.484,
+        "prompt_speed_tok_s": 715.4229056246347,
+        "gen_tokens": 69,
+        "gen_time_ms": 2632.452,
+        "gen_speed_tok_s": 26.21130413773926,
+        "total_wall_time_ms": 2840.7374349999372,
+        "ttft_ms": 0.0
+      }
+    }
+  ]
+}

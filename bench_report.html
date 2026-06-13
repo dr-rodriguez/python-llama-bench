@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>llama.cpp Benchmark Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:      #0d1117;
+    --surface: #161b27;
+    --border:  #1e2533;
+    --border2: #252f42;
+    --text:    #c9d1e0;
+    --muted:   #6b7a99;
+    --accent:  #00d4aa;
+    --accent2: #818cf8;
+    --pass:    #00d4aa;
+    --fail:    #ef4444;
+    --warn:    #f59e0b;
+    --font-mono: 'JetBrains Mono', monospace;
+    --font:      'Inter', sans-serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  /* ── Layout ── */
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 24px 40px;
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    position: sticky; top: 0;
+    background: var(--bg);
+    z-index: 10;
+  }
+  header h1 {
+    font-family: var(--font-mono);
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: -0.5px;
+  }
+  header .subtitle {
+    font-size: 12px;
+    color: var(--muted);
+    font-family: var(--font-mono);
+  }
+  nav {
+    margin-left: auto;
+    display: flex;
+    gap: 20px;
+  }
+  nav a {
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 12px;
+    font-family: var(--font-mono);
+    transition: color .15s;
+  }
+  nav a:hover { color: var(--accent); }
+
+  main {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 36px 40px 80px;
+  }
+  section { margin-bottom: 52px; scroll-margin-top: 80px; }
+  section + section { border-top: 1px solid var(--border); padding-top: 44px; }
+
+  h2 {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 20px;
+  }
+
+  h2 span { color: var(--accent); margin-right: 8px; }
+
+  /* ── Cards ── */
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+  }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    transition: border-color .2s;
+  }
+  .card:hover { border-color: var(--border2); }
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 16px;
+    gap: 8px;
+  }
+  .model-name {
+    font-family: var(--font-mono);
+    font-size: 15px;
+    font-weight: 700;
+    color: #e2e8f0;
+    word-break: break-all;
+  }
+
+  .card-body {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+  }
+  .donut-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+  .score-label { font-size: 11px; color: var(--muted); font-family: var(--font-mono); }
+  .card-stats { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 10px 16px; }
+  .stat { display: flex; flex-direction: column; }
+  .stat-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+  .stat-val {
+    font-family: var(--font-mono);
+    font-size: 16px;
+    font-weight: 700;
+    color: #e2e8f0;
+    line-height: 1.2;
+  }
+  .stat-unit { font-size: 10px; color: var(--muted); font-weight: 400; }
+
+  /* ── Tables ── */
+  /* overflow-x: clip lets sticky positioning work (unlike auto/scroll) */
+  .table-wrap { overflow-x: clip; }
+  /* Fallback for browsers that don't support clip: the table is still readable */
+  @supports not (overflow-x: clip) {
+    .table-wrap { overflow-x: auto; }
+  }
+  table { width: 100%; border-collapse: collapse; }
+  .speed-table { min-width: 700px; width: auto; }
+  th, td {
+    padding: 8px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  th {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    background: var(--surface);
+  }
+  /* Sticky headers — only works when table is not inside overflow:auto wrapper.
+     We give each table its own scrollable wrapper so sticky can work. */
+  /* Headers stick to the top of their scroll-container wrapper (top:0,
+     not 72px — these wrappers are scroll containers, so the offset is
+     relative to the wrapper, not the page). */
+  .results-table th {
+    position: sticky;
+    top: 0;
+  }
+  .cat-table th {
+    position: sticky;
+    top: 0;
+  }
+  .speed-table thead tr:first-child th {
+    position: sticky;
+    top: 72px;
+  }
+  /* Speed table second sub-header row — sits ~34px below the first row */
+  .speed-table thead tr:nth-child(2) th {
+    position: sticky;
+    top: 106px;
+  }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+
+  .results-table .ex-id {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--muted);
+    width: 32px;
+  }
+  .results-table .ex-desc { color: var(--text); max-width: 260px; white-space: normal; }
+  .results-table .cat-row td {
+    font-size: 11px;
+    font-family: var(--font-mono);
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 14px 12px 6px;
+    background: var(--bg);
+    border-bottom: none;
+  }
+  .results-table .dim-row td { background: rgba(255,255,255,0.01); }
+  .results-table .pass { color: var(--pass); }
+  .results-table .fail { color: var(--fail); }
+  .results-table .no-data { color: var(--muted); }
+  .badge {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    margin-right: 6px;
+  }
+  .pass-badge { color: var(--pass); }
+  .fail-badge { color: var(--fail); }
+  .cell-metrics {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .model-col { min-width: 180px; }
+
+  /* ── Horizontally scrollable tables with pinned left column(s) ──
+     overflow-x:auto makes the wrapper a scroll container so wide tables
+     (many models) can scroll left/right. The left column(s) stay pinned
+     via position:sticky; left. */
+  .scroll-x { overflow-x: auto; }
+
+  /* Accuracy by Category — pin the Category column */
+  .cat-table th:first-child,
+  .cat-table td:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    background: var(--surface);
+  }
+  .cat-table thead th:first-child { z-index: 3; }
+
+  /* Exercise Detail — pin the # and Exercise columns */
+  .results-table th:nth-child(1),
+  .results-table td.ex-id {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    width: 44px;
+    min-width: 44px;
+    background: var(--bg);
+  }
+  .results-table th:nth-child(2),
+  .results-table td.ex-desc {
+    position: sticky;
+    left: 44px;
+    z-index: 1;
+    min-width: 200px;
+    background: var(--bg);
+  }
+  .results-table thead th:nth-child(1),
+  .results-table thead th:nth-child(2) { z-index: 3; background: var(--surface); }
+  /* Category separator row — sticky on a colspan <td> is unreliable, so
+     pin an inner inline-block span to the wrapper's left edge instead. */
+  .results-table .cat-label {
+    position: sticky;
+    left: 12px;
+    display: inline-block;
+  }
+
+  /* Category accuracy table */
+  .cat-table td, .cat-table th { padding: 10px 16px; }
+  .cat-cell { display: flex; align-items: center; gap: 12px; }
+  .cat-cell span { font-family: var(--font-mono); font-size: 12px; font-weight: 700; }
+  .spark { display: block; }
+
+  /* Speed table */
+  .speed-table th { text-align: center; }
+  .speed-table td { text-align: right; font-family: var(--font-mono); font-size: 13px; }
+  .speed-table .model-name-cell { text-align: left; font-weight: 600; color: #e2e8f0; }
+  .speed-table thead tr:first-child th {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border2);
+  }
+  .speed-table thead tr:nth-child(2) th {
+    background: #111622;
+    font-size: 10px;
+    color: var(--muted);
+  }
+  /* The rowspan="2" Model cell covers both header rows */
+  .speed-table th[rowspan] {
+    vertical-align: middle;
+    background: var(--surface);
+    z-index: 2;
+  }
+
+  /* Charts */
+  .charts-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+  @media (max-width: 900px) { .charts-row { grid-template-columns: 1fr; } }
+  .chart-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    overflow-x: auto;
+  }
+  .chart-title {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 14px;
+  }
+  .bar-chart { display: block; max-width: 100%; }
+  footer {
+    text-align: center;
+    color: var(--muted);
+    font-size: 12px;
+    font-family: var(--font-mono);
+    padding: 24px;
+    border-top: 1px solid var(--border);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>⚡ llama.cpp bench</h1>
+  <span class="subtitle">11 models · generated 2026-06-13 11:02</span>
+  <nav>
+    <a href="#summary">Summary</a>
+    <a href="#accuracy">Accuracy</a>
+    <a href="#speed">Speed</a>
+    <a href="#exercises">Exercises</a>
+  </nav>
+</header>
+
+<main>
+
+  <section id="summary">
+    <h2><span>01</span>Model Summary</h2>
+    <div class="cards">
+      
+        <div class="card">
+          <div class="card-header">
+            <span class="model-name">bonsai:8b</span>
+          </div>
+          <div class="card-body">
+            <div class="donut-wrap">
+              
+<svg width="88" height="88" viewBox="0 0 88 88" class="donut">
+  <circle cx="44.0" cy="44.0" r="38.0" fill="none" stroke="#1e2533" stroke-width="8"/>
+  <circle cx="44.0" cy="44.0" r="38.0" fill="none" stroke="#00d4aa" stroke-width="8"
+    stroke-dasharray="211.21 27.55"
+    stroke-dashoffset="59.69"
+    stroke-linecap="round"/>
+  <text x="44.0" y="45.0" text-anchor="middle" dominant-baseline="middle"
+    font-family="'JetBrains Mono',monospace" font-size="13" font-weight="700" fill="#00d4aa">
+    88%
+  </text>
+</svg>
+              <div class="score-label">23/26 passed</div>
+            </div>
+            <div class="card-stats">
+              <div class="stat"><span class="stat-label">PP speed</span>
+                <span class="stat-val">53 <span class="stat-unit">tok/s</span></span></div>
+              <div class="stat"><span class="stat-label">TG speed</span>
+                <span class="stat-val">71.0 <span class="stat-unit">tok/s</span></span></div>
+              <div class="stat"><span class="stat-label">Median wall</span>
+                <span class="stat-val">89ms</span></div>
+              <div class="stat"><span class="stat-label">Total time</span>
+                <span class="stat-val">7.13s</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <span class="model-name">deepseek-r1:8b</span>
+          </div>
+          <div class="card-body">
+            <div class="donut-wrap">
+              
+<svg width="88" height="88" viewBox="0 0 88 88" class="donut">
+  <circle cx="44.0" cy="44.0" r="38.0" fill="none" stroke="#1e2533" stroke-width="8"/>
+  <circle cx="44.0" cy="44.0" r="38.0" fill="none" stroke="#f59e0b" stroke-width="8"
+    stroke-dasharray="174.48 64.28"
+    stroke-dashoffset="59.69"
+    stroke-linecap="round"/>
+  <text x="44.0" y="45.0" text-anchor="middle" dominant-baseline="middle"
+    font-family="'JetBrains Mono',monospace" font-size="13" font-weight="700" fill="#f59e0b">
+    73%
+  </text>
+</svg>
+              <div class="score-label">19/26 passed</div>
+            </div>
+            <div class="card-stats">
+              <div class="stat"><span class="stat-label">PP speed</span>
+                <span class="stat-val">1162 <span class="stat-unit">tok/s</span></span></div>
+              <div class="stat"><span class="stat-label">TG speed</span>
+                <span class="stat-val">51.3 <span class="stat-unit">tok/s</span></span></div>
+              <div class="stat"><span class="stat-label">Median wall</span>
+                <span class="stat-val">294ms</span></div>
+              <div class="stat"><span class="stat-label">Total time</span>
+                <span class="stat-val">35.71s</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <span class="model-name">gemma4:12b-q3</span>
+          </div>
+          <div class="card-body">
+            <div class="donut-wrap">
+              
+<svg width="88" height="88" viewBox="0 0 88 88" class="donut">
+  <circle cx="44.0" cy="44.0" r="38.0" fill="none" stroke="#1e2533" stroke-width="8"/>
+  <circle cx="44.0" cy="44.0" r="38.0" fill="none" stroke="#00d4aa" stroke-width="8"
+    stroke-dasharray="202.03 36.73"
+    stroke-dashoffset="59.69"
+    stroke-linecap="round"/>
+  <text x="44.0" y="45.0" text-anchor="middle" dominant-baseline="middle"
+    font-family="'JetBrains Mono',monospace" font-size="13" font-weight="700" fill="#00d4aa">
+    84%
+  </text>
+</svg>
+              <div class="score-label">22/26 passed</div>
+            </div>
+            <div class="card-stats">
+              <div class="stat"><span class="stat-label">PP speed</span>
+                <span class="stat-val">508 <span class="stat-unit">tok/s</span></span></div>
+              <div class="stat"><span class="stat-label">TG speed</span>
+                <span class="stat-val">35.6 <span class="stat-unit">tok/s</span></span></div>
+              <div class="stat"><span class="stat-label">Median wall</span>
+                <span class="stat-val">349ms</span></div>
+              <div class="stat"><span class="stat-label">Total time</span>
+                <span class="stat-val">16.21s</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <span class="model-name">gemma4:26b-moe</span>
+          </div>
+          <div class="card-body">
+            <div class="donut-wrap">
+              
+<svg width="88" height="88" viewBox="0 0 88 88" class="donut">
+  <circle cx="44.0" cy="44.0" r="38.0" fill="none" stroke="#1e2533" stroke-width="8"/>
+  <circle cx="44.0" cy="44.0" r="38.0" fill="none" stroke="#00d4aa" stroke-width="8"
+    stroke-dasharray="229.58 9.18"
+    stroke-dashoffset="59.69"
+    stroke-linecap="round"/>
+  <text x="44.0" y="45.0" text-anchor="middle" dominant-baseline="middle"
+    font-family="'JetBrains Mono',monospace" font-size="13" font-weight="700" fill="#00d4aa">
+    96%
+  </text>
+</svg>
+              <div class="score-label">25/26 passed</div>
+            </div>
+            <div class="card-stats">
+              <div class="stat"><span class="stat-label">PP speed</span>
+                <span class="stat-val">68 <span class="stat-unit">tok/s</span></span></div>
+              <div class="stat"><span class="stat-label">TG speed</span>
+                <span class="stat-val">29.9 <span class="stat-unit">tok/s</span></span></div>
+              <div class="stat"><span class="stat-label">Median wall</span>
+                <span class="stat-val">5.72s</span></div>
+              <div class="stat"><span class="stat-label">Total time</span>
+                <span class="stat-val">184.56s</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <span class="model-name">glm4.6v:flash</span>
+          </div>
+          <div class="card-body">
+            <div class="donut-wrap">
+              
+<svg width="88" height="88" viewBox="0 0 88 88" class="donut">
+  <circle cx="44.0" cy="44.0" r="38.0" fill="none" stroke="#1e2533" stroke-width="8"/>
+  <circle cx="44.0" cy="44.0" r="38.0" fill="none" stroke="#00d4aa" stroke-width="8"
+    stroke-dasharray="192.85 45.92"
+    stroke-dashoffset="59.69"
+    stroke-linecap="round"/>
+  <text x="44.0" y="45.0" text-anchor="middle" dominant-baseline="middle"
+    font-family="'JetBrains Mono',monospace" font-size="13" font-weight="700" fill="#00d4aa">
+    80%
+  </text>
+</svg>
+              <div class="score-label">21/26 passed</div>
+            </div>
+            <div class="card-stats">
+              <div class="stat"><span class="stat-label">PP speed</span>
+                <span class="stat-val">1155 <span class="stat-unit">tok/s</span></span></div>
+              <div class="stat"><span class="stat-label">TG speed</span>
+                <span class="stat-val">47.3 <span class="stat-unit">tok/s</span></span></div>
+              <div class="stat"><span class="stat-label">Median wall</span>
+                <span class="stat-val">479ms</span></div>
+              <div class="stat"><span class="stat-label">Total time</span>
+                <span class="stat-val">85.81s</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <span class="model-name">llama3.3:8b</span>
+          </div>
+          <div class="card-body">
+            <div class="donut-wrap">
+              
+<svg width="88" height="88" viewBox="0 0 88 88" class="donut">
+  <circle cx="44.0" cy="44.0" r="38.0" fill="none" stroke="#1e2533" stroke-width="8"/>
+  <circle cx="44.0" cy="44.0" r="38.0" fill="none" stroke="#00d4aa" stroke-width="8"
+    stroke-dasharray="211.21 27.55"
+    stroke-dashoffset="59.69"
+    stroke-linecap="round"/>
+  <text x="44.0" y="45.0" text-anchor="middle" dominant-baseline="middle"
+    font-family="'JetBrains Mono',monospace" font-size="13" font-weight="700" fill="#00d4aa">
+    88%
+  </text>
+</svg>
+              <div class="score-label">23/26 passed</div>
+            </div>
+            <div class="card-stats">
+              <div class="stat"><span class="stat-label">PP speed</span>
+                <span class="stat-val">1290 <span class="stat-unit">tok/s</span></span></div>
+              <div class="stat"><span class="stat-label">TG speed</span>
+                <span class="stat-val">55.8 <span class="stat-unit">tok/s</span></span></div>
+              <div class="stat"><span class="stat-label">Median wall</span>
+                <span class="stat-val">207ms</span></div>
+              <div class="stat"><span class="stat-label">Total time</span>
+                <span class="stat-val">61.12s</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <span class="model-name">ministral3:8b</span>
+          </div>
+          <div class="card-body">
+            <div class="donut-wrap">
+              
+<svg width="88" height="88" viewBox="0 0 88 88" class="donut">
+  <circle cx="44.0" cy="44.0" r="38.0" fill="none" stroke="#1e2533" stroke-width="8"/>
+  <circle cx="44.0" cy="44.0" r="38.0" fill="none" stroke="#00d4aa" stroke-width="8"
+    stroke-dasharray="202.03 36.73"
+    stroke-dashoffset="59.69"
+    stroke-linecap="round"/>
+  <text x="44.0" y="45.0" text-anchor="middle" dominant-baseline="middle"
+    font-family="'JetBrains Mono',monospace" font-size="13" font-weight="700" fill="#00d4aa">
+    84%
+  </text>
+</svg>
+              <div class="score-label">22/26 passed</div>
+            </div>
+            <div class="card-stats">
+              <div class="stat"><span class="stat-label">PP speed</span>
+                <span class="stat-val">1121 <span class="stat-unit">tok/s</span></span></div>
+              <div class="stat"><span class="stat-label">TG speed</span>
+                <span class="stat-val">51.6 <span class="stat-unit">tok/s</span></span></div>
+              <div class="stat"><span class="stat-label">Median wall</span>
+                <span class="stat-val">129ms</span></div>
+              <div class="stat"><span class="stat-label">Total time</span>
+                <span class="stat-val">8.80s</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <span class="model-name">phi4-mini:reasoning</span>
+          </div>
+          <div class="card-body">
+            <div class="donut-wrap">
+              
+<svg width="88" height="88" viewBox="0 0 88 88" class="donut">
+  <circle cx="44.0" cy="44.0" r="38.0" fill="none" stroke="#1e2533" stroke-width="8"/>
+  <circle cx="44.0" cy="44.0" r="38.0" fill="none" stroke="#ef4444" stroke-width="8"
+    stroke-dasharray="110.20 128.56"
+    stroke-dashoffset="59.69"
+    stroke-linecap="round"/>
+  <text x="44.0" y="45.0" text-anchor="middle" dominant-baseline="middle"
+    font-family="'JetBrains Mono',monospace" font-size="13" font-weight="700" fill="#ef4444">
+    46%
+  </text>
+</svg>
+              <div class="score-label">12/26 passed</div>
+            </div>
+            <div class="card-stats">
+              <div class="stat"><span class="stat-label">PP speed</span>
+                <span class="stat-val">74 <span class="stat-unit">tok/s</span></span></div>
+              <div class="stat"><span class="stat-label">TG speed</span>
+                <span class="stat-val">86.3 <span class="stat-unit">tok/s</span></span></div>
+              <div class="stat"><span class="stat-label">Median wall</span>
+                <span class="stat-val">3.59s</span></div>
+              <div class="stat"><span class="stat-label">Total time</span>
+                <span class="stat-val">154.10s</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <span class="model-name">phi4:14b-reasoning-q3</span>
+          </div>
+          <div class="card-body">
+            <div class="donut-wrap">
+              
+<svg width="88" height="88" viewBox="0 0 88 88" class="donut">
+  <circle cx="44.0" cy="44.0" r="38.0" fill="none" stroke="#1e2533" stroke-width="8"/>
+  <circle cx="44.0" cy="44.0" r="38.0" fill="none" stroke="#f59e0b" stroke-width="8"
+    stroke-dasharray="174.48 64.28"
+    stroke-dashoffset="59.69"
+    stroke-linecap="round"/>
+  <text x="44.0" y="45.0" text-anchor="middle" dominant-baseline="middle"
+    font-family="'JetBrains Mono',monospace" font-size="13" font-weight="700" fill="#f59e0b">
+    73%
+  </text>
+</svg>
+              <div class="score-label">19/26 passed</div>
+            </div>
+            <div class="card-stats">
+              <div class="stat"><span class="stat-label">PP speed</span>
+                <span class="stat-val">496 <span class="stat-unit">tok/s</span></span></div>
+              <div class="stat"><span class="stat-label">TG speed</span>
+                <span class="stat-val">35.2 <span class="stat-unit">tok/s</span></span></div>
+              <div class="stat"><span class="stat-label">Median wall</span>
+                <span class="stat-val">317ms</span></div>
+              <div class="stat"><span class="stat-label">Total time</span>
+                <span class="stat-val">164.10s</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <span class="model-name">qwen3.5:9b</span>
+          </div>
+          <div class="card-body">
+            <div class="donut-wrap">
+              
+<svg width="88" height="88" viewBox="0 0 88 88" class="donut">
+  <circle cx="44.0" cy="44.0" r="38.0" fill="none" stroke="#1e2533" stroke-width="8"/>
+  <circle cx="44.0" cy="44.0" r="38.0" fill="none" stroke="#00d4aa" stroke-width="8"
+    stroke-dasharray="229.58 9.18"
+    stroke-dashoffset="59.69"
+    stroke-linecap="round"/>
+  <text x="44.0" y="45.0" text-anchor="middle" dominant-baseline="middle"
+    font-family="'JetBrains Mono',monospace" font-size="13" font-weight="700" fill="#00d4aa">
+    96%
+  </text>
+</svg>
+              <div class="score-label">25/26 passed</div>
+            </div>
+            <div class="card-stats">
+              <div class="stat"><span class="stat-label">PP speed</span>
+                <span class="stat-val">781 <span class="stat-unit">tok/s</span></span></div>
+              <div class="stat"><span class="stat-label">TG speed</span>
+                <span class="stat-val">49.7 <span class="stat-unit">tok/s</span></span></div>
+              <div class="stat"><span class="stat-label">Median wall</span>
+                <span class="stat-val">225ms</span></div>
+              <div class="stat"><span class="stat-label">Total time</span>
+                <span class="stat-val">10.49s</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <span class="model-name">qwen3:8b</span>
+          </div>
+          <div class="card-body">
+            <div class="donut-wrap">
+              
+<svg width="88" height="88" viewBox="0 0 88 88" class="donut">
+  <circle cx="44.0" cy="44.0" r="38.0" fill="none" stroke="#1e2533" stroke-width="8"/>
+  <circle cx="44.0" cy="44.0" r="38.0" fill="none" stroke="#f59e0b" stroke-width="8"
+    stroke-dasharray="174.48 64.28"
+    stroke-dashoffset="59.69"
+    stroke-linecap="round"/>
+  <text x="44.0" y="45.0" text-anchor="middle" dominant-baseline="middle"
+    font-family="'JetBrains Mono',monospace" font-size="13" font-weight="700" fill="#f59e0b">
+    73%
+  </text>
+</svg>
+              <div class="score-label">19/26 passed</div>
+            </div>
+            <div class="card-stats">
+              <div class="stat"><span class="stat-label">PP speed</span>
+                <span class="stat-val">1171 <span class="stat-unit">tok/s</span></span></div>
+              <div class="stat"><span class="stat-label">TG speed</span>
+                <span class="stat-val">49.8 <span class="stat-unit">tok/s</span></span></div>
+              <div class="stat"><span class="stat-label">Median wall</span>
+                <span class="stat-val">6.01s</span></div>
+              <div class="stat"><span class="stat-label">Total time</span>
+                <span class="stat-val">196.74s</span></div>
+            </div>
+          </div>
+        </div>
+    </div>
+  </section>
+
+  <section id="accuracy">
+    <h2><span>02</span>Accuracy by Category</h2>
+    <div class="table-wrap scroll-x">
+    <table class="cat-table">
+      <thead><tr><th>Category</th><th>bonsai:8b</th><th>deepseek-r1:8b</th><th>gemma4:12b-q3</th><th>gemma4:26b-moe</th><th>glm4.6v:flash</th><th>llama3.3:8b</th><th>ministral3:8b</th><th>phi4-mini:reasoning</th><th>phi4:14b-reasoning-q3</th><th>qwen3.5:9b</th><th>qwen3:8b</th></tr></thead>
+      <tbody><tr><td style="color:#34d399;font-weight:600">Code</td><td><div class="cat-cell"><svg width="80" height="18" class="spark"><rect x="0" y="4" width="80" height="10" rx="2" fill="#1e2533"/><rect x="0" y="4" width="80" height="10" rx="2" fill="#34d399"/></svg><span style="color:#00d4aa">4/4</span></div></td><td><div class="cat-cell"><svg width="80" height="18" class="spark"><rect x="0" y="4" width="80" height="10" rx="2" fill="#1e2533"/><rect x="0" y="4" width="40" height="10" rx="2" fill="#34d399"/></svg><span style="color:#ef4444">2/4</span></div></td><td><div class="cat-cell"><svg width="80" height="18" class="spark"><rect x="0" y="4" width="80" height="10" rx="2" fill="#1e2533"/><rect x="0" y="4" width="80" height="10" rx="2" fill="#34d399"/></svg><span style="color:#00d4aa">4/4</span></div></td><td><div class="cat-cell"><svg width="80" height="18" class="spark"><rect x="0" y="4" width="80" height="10" rx="2" fill="#1e2533"/><rect x="0" y="4" width="80" height="10" rx="2" fill="#34d399"/></svg><span style="color:#00d4aa">4/4</span></div></td><td><div class="cat-cell"><svg width="80" height="18" class="spark"><rect x="0" y="4" width="80" height="10" rx="2" fill="#1e2533"/><rect x="0" y="4" width="60" height="10" rx="2" fill="#34d399"/></svg><span style="color:#f59e0b">3/4</span></div></td><td><div class="cat-cell"><svg width="80" height="18" class="spark"><rect x="0" y="4" width="80" height="10" rx="2" fill="#1e2533"/><rect x="0" y="4" width="80" height="10" rx="2" fill="#34d399"/></svg><span style="color:#00d4aa">4/4</span></div></td><td><div class="cat-cell"><svg width="80" height="18" class="spark"><rect x="0" y="4" width="80" height="10" rx="2" fill="#1e2533"/><rect x="0" y="4" width="80" height="10" rx="2" fill="#34d399"/></svg><span style="color:#00d4aa">4/4</span></div></td><td><div class="cat-cell"><svg width="80" height="18" class="spark"><rect x="0" y="4" width="80" height="10" rx="2" fill="#1e2533"/><rect x="0" y="4" width="20" height="10" rx="2" fill="#34d399"/></svg><span style="color:#ef4444">1/4</span></div></td><td><div class="cat-cell"><svg width="80" height="18" class="spark"><rect x="0" y="4" width="80" height="10" rx="2" fill="#1e2533"/><rect x="0" y="4" width="80" height="10" rx="2" fill="#34d399"/></svg><span style="color:#00d4aa">4/4</span></div></td><td><div class="cat-cell"><svg width="80" height="18" class="spark"><rect x="0" y="4" width="80" height="10" rx="2" fill="#1e2533"/><rect x="0" y="4" width="80" height="10" rx="2" fill="#34d399"/></svg><span style="color:#00d4aa">4/4</span></div></td><td><div class="cat-cell"><svg width="80" height="18" class="spark"><rect x="0" y="4" width="80" height="10" rx="2" fill="#1e2533"/><rect x="0" y="4" width="40" height="10" rx="2" fill="#34d399"/></svg><span style="color:#ef4444">2/4</span></div></td></tr><tr><td style="color:#f87171;font-weight:600">Extraction</td><td><div class="cat-cell"><svg width="80" height="18" class="spark"><rect x="0" y="4" width="80" height="10" rx="2" fill="#1e2533"/><rect x="0" y="4" width="40" height="10" rx="2" fill="#f87171"/></svg><span style="color:#ef4444">1/2</span></div></td><td><div class="cat-cell"><svg width="80" height="18" class="spark"><rect x="0" y="4" width="80" height="10" rx="2" fill="#1e2533"/><rect x="0" y="4" width="40" height="10" rx="2" fill="#f87171"/></svg><span style="color:#ef4444">1/2</span></div></td><td><div class="cat-cell"><svg width="80" height="18" class="spark"><rect x="0" y="4" width="80" height="10" rx="2" fill="#1e2533"/><rect x="0" y="4" width="40" height="10" rx="2" fill="#f87171"/></svg><span style="color:#ef4444">1/2</span></div></td><td><div class="cat-cell"><svg width="80" height="18" class="spark"><rect x="0" y="4" width="80" height="10" rx="2" fill="#1e2533"/><rect x="0" y="4" width="80" height="10" rx="2" fill="#f87171"/></svg><span style="color:#00d4aa">2/2</span></div></td><td><div class="cat-cell"><svg width="80" height="18" class="spark"><rect x="0" y="4" width="80" height="10" rx="2" fill="#1e2533"/><rect x="0" y="4" width="40" height="10" rx="2" fill="#f87171"/></svg><span style="color:#ef4444">1/2</span></div></td><td><div class="cat-cell"><svg width="80" height="18" class="spark"><rect x="0" y="4" width="80" height="10" rx="2" fill="#1e2533"/><rect x="0" y="4" width="80" height="10" rx="2" fill="#f87171"/></svg><span style="color:#00d4aa">2/2</span></div></td><td><div class="cat-cell"><svg width="80" height="18" class="spark"><rect x="0" y="4" width="80" height="10" rx="2" fill="#1e2533"/><rect x="0" y="4" width="40" height="10" rx="2" fill="#f87171"/></svg><span style="color:#ef4444">1/2</span></div></td><td><div class="cat-cell"><svg width="80" height="18" class="spark"><rect x="0" y="4" width="80" height="10" rx="2" fill="#1e2533"/><rect x="0" y="4" width="40" height="10" rx="2" fill="#f87171"/></svg><span style="color:#ef4444">1/2</span></div></td><td><div class="cat-cell"><svg width="80" height="18" class="spark"><rect x="0" y="4" width="80" height="10" rx="2" fill="#1e2533"/><rect x="0" y="4" width="40" height="10" rx="2" fill="#f87171"/></svg><span style="color:#ef4444">1/2</span></div></td><td><div class="cat-cell"><svg width="80" height="18" class="spark"><rect x="0" y="4" width="80" height="10" rx="2" fill="#1e2533"/><rect x="0" y="4" width="80" height="10" rx="2" fill="#f87171"/></svg><span style="color:#00d4aa">2/2</span></div></td><td><div class="cat-cell"><svg width="80" height="18" class="spark"><rect x="0" y="4" width="80" height="10" rx="2" fill="#1e2533"/><rect x="0" y="4" width="0" height="10" rx="2" fill="#f87171"/></svg><span style="color:#ef4444">0/2</span></div></td></tr><tr><td style="color:#818cf8;font-weight:600">Factual</td><td><div class="cat-cell"><svg width="80" height="18" class="spark"><rect x="0" y="4" width="80" height="10" rx="2" fill="#1e2533"/><rect x="0" y="4" width="64" height="10" rx="2" fill="#818cf8"/></svg><span style="color:#00d4aa">4/5</span></div></td><td><div class="cat-cell"><svg width="80" height="18" class="spark"><rect x="0" y="4" width="80" height="10" rx="2" fill="#1e2533"/><rect x="0" y="4" width="64" height="10" rx="2" fill="#818cf8"/></svg><span style="color:#00d4aa">4/5</span></div></td><td><div class="cat-cell"><svg width="80" height="18" class="spark"><rect x="0" y="4" width="80" height="10" rx="2" fill="#1e2533"/><rect x="0" y="4" width="80" height="10" rx="2" fill="#818cf8"/></svg><span style="color:#00d4aa">5/5</span></div></td><td><div class="cat-cell"><svg width="80" height="18" class="spark"><rect x="0" y="4" width="80" height="10" rx="2" fill="#1e2533"/><rect x="0" y="4" width="80" height="10" rx="2" fill="#818cf8"/></svg><span style="color:#00d4aa">5/5</span></div></td><td><div class="cat-cell"><svg width="80" height="18" class="spark"><rect x="0" y="4" width="80" height="10" rx="2" fill="#1e2533"/><rect x="0" y="4" width="48" height="10" rx="2" fill="#818cf8"/></svg><span style="color:#f59e0b">3/5</span></div></td><td><div class="cat-cell"><svg width="80" height="18" class="spark"><rect x="0" y="4" width="80" height="10" rx="2" fill="#1e2533"/><rect x="0" y="4" width="80" height="10" rx="2" fill="#818cf8"/></svg><span style="color:#00d4aa">5/5</span></div></td><td><div class="cat-cell"><svg width="80" height="18" class="spark"><rect x="0" y="4" width="80" height="10" rx="2" fill="#1e2533"/><rect x="0" y="4" width="80" height="10" rx="2" fill="#818cf8"/></svg><span style="color:#00d4aa">5/5</span></div></td><td><div class="cat-cell"><svg width="80" height="18" class="spark"><rect x="0" y="4" width="80" height="10" rx="2" fill="#1e2533"/><rect x="0" y="4" width="48" height="10" rx="2" fill="#818cf8"/></svg><span style="color:#f59e0b">3/5</span></div></td><td><div class="cat-cell"><svg width="80" height="18" class="spark"><rect x="0" y="4" width="80" height="10" rx="2" fill="#1e2533"/><rect x="0" y="4" width="64" height="10" rx="2" fill="#818cf8"/></svg><span style="color:#00d4aa">4/5</span></div></td><td><div class="cat-cell"><svg width="80" height="18" class="spark"><rect x="0" y="4" width="80" height="10" rx="2" fill="#1e2533"/><rect x="0" y="4" width="80" height="10" rx="2" fill="#818cf8"/></svg><span style="color:#00d4aa">5/5</span></div></td><td><div class="cat-cell"><svg width="80" height="18" class="spark"><rect x="0" y="4" width="80" height="10" rx="2" fill="#1e2533"/><rect x="0" y="4" width="80" height="10" rx="2" fill="#818cf8"/></svg><span style="color:#00d4aa">5/5</span></div></td></tr><tr><td style="color:#f59e0b;font-weight:600">Instruction</td><td><div class="cat-cell"><svg width="80" height="18" class="spark"><rect x="0" y="4" width="80" height="10" rx="2" fill="#1e2533"/><rect x="0" y="4" width="80" height="10" rx="2" fill="#f59e0b"/></svg><span style="color:#00d4aa">4/4</span></div></td><td><div class="cat-cell"><svg width="80" height="18" class="spark"><rect x="0" y="4" width="80" height="10" rx="2" fill="#1e2533"/><rect x="0" y="4" width="60" height="10" rx="2" fill="#f59e0b"/></svg><span style="color:#f59e0b">3/4</span></div></td><td><div class="cat-cell"><svg width="80" height="18" class="spark"><rect x="0" y="4" width="80" height="10" rx="2" fill="#1e2533"/><rect x="0" y="4" width="40" height="10" rx="2" fill="#f59e0b"/></svg><span style="color:#ef4444">2/4</span></div></td><td><div class="cat-cell"><svg width="80" height="18" class="spark"><rect x="0" y="4" width="80" height="10" rx="2" fill="#1e2533"/><rect x="0" y="4" width="80" height="10" rx="2" fill="#f59e0b"/></svg><span style="color:#00d4aa">4/4</span></div></td><td><div class="cat-cell"><svg width="80" height="18" class="spark"><rect x="0" y="4" width="80" height="10" rx="2" fill="#1e2533"/><rect x="0" y="4" width="60" height="10" rx="2" fill="#f59e0b"/></svg><span style="color:#f59e0b">3/4</span></div></td><td><div class="cat-cell"><svg width="80" height="18" class="spark"><rect x="0" y="4" width="80" height="10" rx="2" fill="#1e2533"/><rect x="0" y="4" width="60" height="10" rx="2" fill="#f59e0b"/></svg><span style="color:#f59e0b">3/4</span></div></td><td><div class="cat-cell"><svg width="80" height="18" class="spark"><rect x="0" y="4" width="80" height="10" rx="2" fill="#1e2533"/><rect x="0" y="4" width="80" height="10" rx="2" fill="#f59e0b"/></svg><span style="color:#00d4aa">4/4</span></div></td><td><div class="cat-cell"><svg width="80" height="18" class="spark"><rect x="0" y="4" width="80" height="10" rx="2" fill="#1e2533"/><rect x="0" y="4" width="40" height="10" rx="2" fill="#f59e0b"/></svg><span style="color:#ef4444">2/4</span></div></td><td><div class="cat-cell"><svg width="80" height="18" class="spark"><rect x="0" y="4" width="80" height="10" rx="2" fill="#1e2533"/><rect x="0" y="4" width="60" height="10" rx="2" fill="#f59e0b"/></svg><span style="color:#f59e0b">3/4</span></div></td><td><div class="cat-cell"><svg width="80" height="18" class="spark"><rect x="0" y="4" width="80" height="10" rx="2" fill="#1e2533"/><rect x="0" y="4" width="80" height="10" rx="2" fill="#f59e0b"/></svg><span style="color:#00d4aa">4/4</span></div></td><td><div class="cat-cell"><svg width="80" height="18" class="spark"><rect x="0" y="4" width="80" height="10" rx="2" fill="#1e2533"/><rect x="0" y="4" width="40" height="10" rx="2" fill="#f59e0b"/></svg><span style="color:#ef4444">2/4</span></div></td></tr><tr><td style="color:#06b6d4;font-weight:600">Math</td><td><div class="cat-cell"><svg width="80" height="18" class="spark"><rect x="0" y="4" width="80" height="10" rx="2" fill="#1e2533"/><rect x="0" y="4" width="80" height="10" rx="2" fill="#06b6d4"/></svg><span style="color:#00d4aa">6/6</span></div></td><td><div class="cat-cell"><svg width="80" height="18" class="spark"><rect x="0" y="4" width="80" height="10" rx="2" fill="#1e2533"/><rect x="0" y="4" width="66" height="10" rx="2" fill="#06b6d4"/></svg><span style="color:#00d4aa">5/6</span></div></td><td><div class="cat-cell"><svg width="80" height="18" class="spark"><rect x="0" y="4" width="80" height="10" rx="2" fill="#1e2533"/><rect x="0" y="4" width="66" height="10" rx="2" fill="#06b6d4"/></svg><span style="color:#00d4aa">5/6</span></div></td><td><div class="cat-cell"><svg width="80" height="18" class="spark"><rect x="0" y="4" width="80" height="10" rx="2" fill="#1e2533"/><rect x="0" y="4" width="66" height="10" rx="2" fill="#06b6d4"/></svg><span style="color:#00d4aa">5/6</span></div></td><td><div class="cat-cell"><svg width="80" height="18" class="spark"><rect x="0" y="4" width="80" height="10" rx="2" fill="#1e2533"/><rect x="0" y="4" width="80" height="10" rx="2" fill="#06b6d4"/></svg><span style="color:#00d4aa">6/6</span></div></td><td><div class="cat-cell"><svg width="80" height="18" class="spark"><rect x="0" y="4" width="80" height="10" rx="2" fill="#1e2533"/><rect x="0" y="4" width="53" height="10" rx="2" fill="#06b6d4"/></svg><span style="color:#f59e0b">4/6</span></div></td><td><div class="cat-cell"><svg width="80" height="18" class="spark"><rect x="0" y="4" width="80" height="10" rx="2" fill="#1e2533"/><rect x="0" y="4" width="40" height="10" rx="2" fill="#06b6d4"/></svg><span style="color:#ef4444">3/6</span></div></td><td><div class="cat-cell"><svg width="80" height="18" class="spark"><rect x="0" y="4" width="80" height="10" rx="2" fill="#1e2533"/><rect x="0" y="4" width="13" height="10" rx="2" fill="#06b6d4"/></svg><span style="color:#ef4444">1/6</span></div></td><td><div class="cat-cell"><svg width="80" height="18" class="spark"><rect x="0" y="4" width="80" height="10" rx="2" fill="#1e2533"/><rect x="0" y="4" width="40" height="10" rx="2" fill="#06b6d4"/></svg><span style="color:#ef4444">3/6</span></div></td><td><div class="cat-cell"><svg width="80" height="18" class="spark"><rect x="0" y="4" width="80" height="10" rx="2" fill="#1e2533"/><rect x="0" y="4" width="66" height="10" rx="2" fill="#06b6d4"/></svg><span style="color:#00d4aa">5/6</span></div></td><td><div class="cat-cell"><svg width="80" height="18" class="spark"><rect x="0" y="4" width="80" height="10" rx="2" fill="#1e2533"/><rect x="0" y="4" width="80" height="10" rx="2" fill="#06b6d4"/></svg><span style="color:#00d4aa">6/6</span></div></td></tr><tr><td style="color:#c084fc;font-weight:600">Reasoning</td><td><div class="cat-cell"><svg width="80" height="18" class="spark"><rect x="0" y="4" width="80" height="10" rx="2" fill="#1e2533"/><rect x="0" y="4" width="64" height="10" rx="2" fill="#c084fc"/></svg><span style="color:#00d4aa">4/5</span></div></td><td><div class="cat-cell"><svg width="80" height="18" class="spark"><rect x="0" y="4" width="80" height="10" rx="2" fill="#1e2533"/><rect x="0" y="4" width="64" height="10" rx="2" fill="#c084fc"/></svg><span style="color:#00d4aa">4/5</span></div></td><td><div class="cat-cell"><svg width="80" height="18" class="spark"><rect x="0" y="4" width="80" height="10" rx="2" fill="#1e2533"/><rect x="0" y="4" width="80" height="10" rx="2" fill="#c084fc"/></svg><span style="color:#00d4aa">5/5</span></div></td><td><div class="cat-cell"><svg width="80" height="18" class="spark"><rect x="0" y="4" width="80" height="10" rx="2" fill="#1e2533"/><rect x="0" y="4" width="80" height="10" rx="2" fill="#c084fc"/></svg><span style="color:#00d4aa">5/5</span></div></td><td><div class="cat-cell"><svg width="80" height="18" class="spark"><rect x="0" y="4" width="80" height="10" rx="2" fill="#1e2533"/><rect x="0" y="4" width="80" height="10" rx="2" fill="#c084fc"/></svg><span style="color:#00d4aa">5/5</span></div></td><td><div class="cat-cell"><svg width="80" height="18" class="spark"><rect x="0" y="4" width="80" height="10" rx="2" fill="#1e2533"/><rect x="0" y="4" width="80" height="10" rx="2" fill="#c084fc"/></svg><span style="color:#00d4aa">5/5</span></div></td><td><div class="cat-cell"><svg width="80" height="18" class="spark"><rect x="0" y="4" width="80" height="10" rx="2" fill="#1e2533"/><rect x="0" y="4" width="80" height="10" rx="2" fill="#c084fc"/></svg><span style="color:#00d4aa">5/5</span></div></td><td><div class="cat-cell"><svg width="80" height="18" class="spark"><rect x="0" y="4" width="80" height="10" rx="2" fill="#1e2533"/><rect x="0" y="4" width="64" height="10" rx="2" fill="#c084fc"/></svg><span style="color:#00d4aa">4/5</span></div></td><td><div class="cat-cell"><svg width="80" height="18" class="spark"><rect x="0" y="4" width="80" height="10" rx="2" fill="#1e2533"/><rect x="0" y="4" width="80" height="10" rx="2" fill="#c084fc"/></svg><span style="color:#00d4aa">5/5</span></div></td><td><div class="cat-cell"><svg width="80" height="18" class="spark"><rect x="0" y="4" width="80" height="10" rx="2" fill="#1e2533"/><rect x="0" y="4" width="80" height="10" rx="2" fill="#c084fc"/></svg><span style="color:#00d4aa">5/5</span></div></td><td><div class="cat-cell"><svg width="80" height="18" class="spark"><rect x="0" y="4" width="80" height="10" rx="2" fill="#1e2533"/><rect x="0" y="4" width="64" height="10" rx="2" fill="#c084fc"/></svg><span style="color:#00d4aa">4/5</span></div></td></tr></tbody>
+    </table></div>
+  </section>
+
+  <section id="speed">
+    <h2><span>03</span>Speed Stats</h2>
+    <div class="table-wrap">
+    <table class="speed-table">
+      <thead>
+        <tr>
+          <th rowspan="2">Model</th>
+          <th colspan="3">Prompt Processing (tok/s)</th>
+          <th colspan="3">Token Generation (tok/s)</th>
+          <th colspan="3">Wall Time</th>
+        </tr>
+        <tr>
+          <th>Median</th><th>Max</th><th>Min</th>
+          <th>Median</th><th>Max</th><th>Min</th>
+          <th>Median</th><th>p95</th><th>Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="model-name-cell">bonsai:8b</td>
+          <td>53</td>
+          <td>60</td>
+          <td>44</td>
+          <td>71.0</td>
+          <td>122.4</td>
+          <td>54.9</td>
+          <td>89ms</td>
+          <td>1.37s</td>
+          <td>7.13s</td>
+        </tr>
+        <tr>
+          <td class="model-name-cell">deepseek-r1:8b</td>
+          <td>1162</td>
+          <td>1890</td>
+          <td>896</td>
+          <td>51.3</td>
+          <td>62.8</td>
+          <td>44.3</td>
+          <td>294ms</td>
+          <td>3.27s</td>
+          <td>35.71s</td>
+        </tr>
+        <tr>
+          <td class="model-name-cell">gemma4:12b-q3</td>
+          <td>508</td>
+          <td>825</td>
+          <td>367</td>
+          <td>35.6</td>
+          <td>38.4</td>
+          <td>31.4</td>
+          <td>349ms</td>
+          <td>1.84s</td>
+          <td>16.21s</td>
+        </tr>
+        <tr>
+          <td class="model-name-cell">gemma4:26b-moe</td>
+          <td>68</td>
+          <td>84</td>
+          <td>44</td>
+          <td>29.9</td>
+          <td>31.1</td>
+          <td>29.0</td>
+          <td>5.72s</td>
+          <td>13.82s</td>
+          <td>184.56s</td>
+        </tr>
+        <tr>
+          <td class="model-name-cell">glm4.6v:flash</td>
+          <td>1155</td>
+          <td>1799</td>
+          <td>830</td>
+          <td>47.3</td>
+          <td>57.0</td>
+          <td>43.0</td>
+          <td>479ms</td>
+          <td>23.13s</td>
+          <td>85.81s</td>
+        </tr>
+        <tr>
+          <td class="model-name-cell">llama3.3:8b</td>
+          <td>1290</td>
+          <td>2102</td>
+          <td>1085</td>
+          <td>55.8</td>
+          <td>67.8</td>
+          <td>49.1</td>
+          <td>207ms</td>
+          <td>20.78s</td>
+          <td>61.12s</td>
+        </tr>
+        <tr>
+          <td class="model-name-cell">ministral3:8b</td>
+          <td>1121</td>
+          <td>1949</td>
+          <td>812</td>
+          <td>51.6</td>
+          <td>90.9</td>
+          <td>41.2</td>
+          <td>129ms</td>
+          <td>1.52s</td>
+          <td>8.80s</td>
+        </tr>
+        <tr>
+          <td class="model-name-cell">phi4-mini:reasoning</td>
+          <td>74</td>
+          <td>85</td>
+          <td>60</td>
+          <td>86.3</td>
+          <td>89.5</td>
+          <td>82.5</td>
+          <td>3.59s</td>
+          <td>12.23s</td>
+          <td>154.10s</td>
+        </tr>
+        <tr>
+          <td class="model-name-cell">phi4:14b-reasoning-q3</td>
+          <td>496</td>
+          <td>944</td>
+          <td>22</td>
+          <td>35.2</td>
+          <td>60.9</td>
+          <td>22.1</td>
+          <td>317ms</td>
+          <td>43.13s</td>
+          <td>164.10s</td>
+        </tr>
+        <tr>
+          <td class="model-name-cell">qwen3.5:9b</td>
+          <td>781</td>
+          <td>1164</td>
+          <td>605</td>
+          <td>49.7</td>
+          <td>54.5</td>
+          <td>41.5</td>
+          <td>225ms</td>
+          <td>1.22s</td>
+          <td>10.49s</td>
+        </tr>
+        <tr>
+          <td class="model-name-cell">qwen3:8b</td>
+          <td>1171</td>
+          <td>1896</td>
+          <td>993</td>
+          <td>49.8</td>
+          <td>59.2</td>
+          <td>47.3</td>
+          <td>6.01s</td>
+          <td>21.63s</td>
+          <td>196.74s</td>
+        </tr></tbody>
+    </table></div>
+
+    <div class="charts-row" style="margin-top:24px">
+      <div class="chart-box">
+        <div class="chart-title">Token Generation Speed by Category (tok/s)</div>
+        <svg width="563" height="220" viewBox="0 0 563 220" class="bar-chart" font-family="'Inter',sans-serif" font-size="10">
+<rect x="50" y="4" width="10" height="10" rx="2" fill="#00d4aa"/>
+<text x="64" y="13" fill="#8892aa" font-size="10" dominant-baseline="auto">bonsai:8b</text>
+<rect x="210" y="4" width="10" height="10" rx="2" fill="#818cf8"/>
+<text x="224" y="13" fill="#8892aa" font-size="10" dominant-baseline="auto">deepseek-r1:8b</text>
+<rect x="370" y="4" width="10" height="10" rx="2" fill="#f59e0b"/>
+<text x="384" y="13" fill="#8892aa" font-size="10" dominant-baseline="auto">gemma4:12b-q3</text>
+<rect x="50" y="22" width="10" height="10" rx="2" fill="#f472b6"/>
+<text x="64" y="31" fill="#8892aa" font-size="10" dominant-baseline="auto">gemma4:26b-moe</text>
+<rect x="210" y="22" width="10" height="10" rx="2" fill="#34d399"/>
+<text x="224" y="31" fill="#8892aa" font-size="10" dominant-baseline="auto">glm4.6v:flash</text>
+<rect x="370" y="22" width="10" height="10" rx="2" fill="#60a5fa"/>
+<text x="384" y="31" fill="#8892aa" font-size="10" dominant-baseline="auto">llama3.3:8b</text>
+<rect x="50" y="40" width="10" height="10" rx="2" fill="#fb923c"/>
+<text x="64" y="49" fill="#8892aa" font-size="10" dominant-baseline="auto">ministral3:8b</text>
+<rect x="210" y="40" width="10" height="10" rx="2" fill="#a78bfa"/>
+<text x="224" y="49" fill="#8892aa" font-size="10" dominant-baseline="auto">phi4-mini:reasoning</text>
+<rect x="370" y="40" width="10" height="10" rx="2" fill="#4ade80"/>
+<text x="384" y="49" fill="#8892aa" font-size="10" dominant-baseline="auto">phi4:14b-reasoning-q3</text>
+<rect x="50" y="58" width="10" height="10" rx="2" fill="#f87171"/>
+<text x="64" y="67" fill="#8892aa" font-size="10" dominant-baseline="auto">qwen3.5:9b</text>
+<rect x="210" y="58" width="10" height="10" rx="2" fill="#00d4aa"/>
+<text x="224" y="67" fill="#8892aa" font-size="10" dominant-baseline="auto">qwen3:8b</text>
+<line x1="50" y1="86.0" x2="558" y2="86.0" stroke="#1e2533" stroke-width="1"/><text x="46" y="89.0" text-anchor="end" fill="#6b7a99">104</text>
+<line x1="50" y1="113.5" x2="558" y2="113.5" stroke="#1e2533" stroke-width="1"/><text x="46" y="116.5" text-anchor="end" fill="#6b7a99">78</text>
+<line x1="50" y1="141.0" x2="558" y2="141.0" stroke="#1e2533" stroke-width="1"/><text x="46" y="144.0" text-anchor="end" fill="#6b7a99">52</text>
+<line x1="50" y1="168.5" x2="558" y2="168.5" stroke="#1e2533" stroke-width="1"/><text x="46" y="171.5" text-anchor="end" fill="#6b7a99">26</text>
+<line x1="50" y1="196.0" x2="558" y2="196.0" stroke="#1e2533" stroke-width="1"/><text x="46" y="199.0" text-anchor="end" fill="#6b7a99">0</text>
+<rect x="54" y="121" width="43" height="75" rx="3" fill="#00d4aa" opacity="0.85"><title>bonsai:8b: 71.0 ± 21.7 tok/s</title></rect>
+<line x1="75.5" y1="98.0" x2="75.5" y2="144.0" stroke="white" stroke-width="1.5" opacity="0.7"/>
+<line x1="70.5" y1="98.0" x2="80.5" y2="98.0" stroke="white" stroke-width="1.5" opacity="0.7"/>
+<line x1="70.5" y1="144.0" x2="80.5" y2="144.0" stroke="white" stroke-width="1.5" opacity="0.7"/>
+<text x="75.5" y="93.0" text-anchor="middle" fill="#00d4aa" font-size="9">71 ±22</text>
+<rect x="99" y="142" width="43" height="54" rx="3" fill="#818cf8" opacity="0.85"><title>deepseek-r1:8b: 51.3 ± 4.5 tok/s</title></rect>
+<line x1="120.5" y1="137.2" x2="120.5" y2="146.8" stroke="white" stroke-width="1.5" opacity="0.7"/>
+<line x1="115.5" y1="137.2" x2="125.5" y2="137.2" stroke="white" stroke-width="1.5" opacity="0.7"/>
+<line x1="115.5" y1="146.8" x2="125.5" y2="146.8" stroke="white" stroke-width="1.5" opacity="0.7"/>
+<text x="120.5" y="132.2" text-anchor="middle" fill="#818cf8" font-size="9">51 ±5</text>
+<rect x="144" y="159" width="43" height="37" rx="3" fill="#f59e0b" opacity="0.85"><title>gemma4:12b-q3: 35.6 ± 2.1 tok/s</title></rect>
+<line x1="165.5" y1="156.7" x2="165.5" y2="161.3" stroke="white" stroke-width="1.5" opacity="0.7"/>
+<line x1="160.5" y1="156.7" x2="170.5" y2="156.7" stroke="white" stroke-width="1.5" opacity="0.7"/>
+<line x1="160.5" y1="161.3" x2="170.5" y2="161.3" stroke="white" stroke-width="1.5" opacity="0.7"/>
+<text x="165.5" y="151.7" text-anchor="middle" fill="#f59e0b" font-size="9">36 ±2</text>
+<rect x="189" y="165" width="43" height="31" rx="3" fill="#f472b6" opacity="0.85"><title>gemma4:26b-moe: 29.9 ± 0.5 tok/s</title></rect>
+<line x1="210.5" y1="164.4" x2="210.5" y2="165.6" stroke="white" stroke-width="1.5" opacity="0.7"/>
+<line x1="205.5" y1="164.4" x2="215.5" y2="164.4" stroke="white" stroke-width="1.5" opacity="0.7"/>
+<line x1="205.5" y1="165.6" x2="215.5" y2="165.6" stroke="white" stroke-width="1.5" opacity="0.7"/>
+<text x="210.5" y="159.4" text-anchor="middle" fill="#f472b6" font-size="9">30 ±1</text>
+<rect x="234" y="146" width="43" height="50" rx="3" fill="#34d399" opacity="0.85"><title>glm4.6v:flash: 47.3 ± 3.5 tok/s</title></rect>
+<line x1="255.5" y1="142.3" x2="255.5" y2="149.7" stroke="white" stroke-width="1.5" opacity="0.7"/>
+<line x1="250.5" y1="142.3" x2="260.5" y2="142.3" stroke="white" stroke-width="1.5" opacity="0.7"/>
+<line x1="250.5" y1="149.7" x2="260.5" y2="149.7" stroke="white" stroke-width="1.5" opacity="0.7"/>
+<text x="255.5" y="137.3" text-anchor="middle" fill="#34d399" font-size="9">47 ±4</text>
+<rect x="279" y="137" width="43" height="59" rx="3" fill="#60a5fa" opacity="0.85"><title>llama3.3:8b: 55.8 ± 6.5 tok/s</title></rect>
+<line x1="300.5" y1="130.1" x2="300.5" y2="143.9" stroke="white" stroke-width="1.5" opacity="0.7"/>
+<line x1="295.5" y1="130.1" x2="305.5" y2="130.1" stroke="white" stroke-width="1.5" opacity="0.7"/>
+<line x1="295.5" y1="143.9" x2="305.5" y2="143.9" stroke="white" stroke-width="1.5" opacity="0.7"/>
+<text x="300.5" y="125.1" text-anchor="middle" fill="#60a5fa" font-size="9">56 ±6</text>
+<rect x="324" y="142" width="43" height="54" rx="3" fill="#fb923c" opacity="0.85"><title>ministral3:8b: 51.6 ± 15.6 tok/s</title></rect>
+<line x1="345.5" y1="125.4" x2="345.5" y2="158.6" stroke="white" stroke-width="1.5" opacity="0.7"/>
+<line x1="340.5" y1="125.4" x2="350.5" y2="125.4" stroke="white" stroke-width="1.5" opacity="0.7"/>
+<line x1="340.5" y1="158.6" x2="350.5" y2="158.6" stroke="white" stroke-width="1.5" opacity="0.7"/>
+<text x="345.5" y="120.4" text-anchor="middle" fill="#fb923c" font-size="9">52 ±16</text>
+<rect x="369" y="105" width="43" height="91" rx="3" fill="#a78bfa" opacity="0.85"><title>phi4-mini:reasoning: 86.3 ± 2.0 tok/s</title></rect>
+<line x1="390.5" y1="102.9" x2="390.5" y2="107.1" stroke="white" stroke-width="1.5" opacity="0.7"/>
+<line x1="385.5" y1="102.9" x2="395.5" y2="102.9" stroke="white" stroke-width="1.5" opacity="0.7"/>
+<line x1="385.5" y1="107.1" x2="395.5" y2="107.1" stroke="white" stroke-width="1.5" opacity="0.7"/>
+<text x="390.5" y="97.9" text-anchor="middle" fill="#a78bfa" font-size="9">86 ±2</text>
+<rect x="414" y="159" width="43" height="37" rx="3" fill="#4ade80" opacity="0.85"><title>phi4:14b-reasoning-q3: 35.2 ± 10.6 tok/s</title></rect>
+<line x1="435.5" y1="147.8" x2="435.5" y2="170.2" stroke="white" stroke-width="1.5" opacity="0.7"/>
+<line x1="430.5" y1="147.8" x2="440.5" y2="147.8" stroke="white" stroke-width="1.5" opacity="0.7"/>
+<line x1="430.5" y1="170.2" x2="440.5" y2="170.2" stroke="white" stroke-width="1.5" opacity="0.7"/>
+<text x="435.5" y="142.8" text-anchor="middle" fill="#4ade80" font-size="9">35 ±11</text>
+<rect x="459" y="144" width="43" height="52" rx="3" fill="#f87171" opacity="0.85"><title>qwen3.5:9b: 49.7 ± 3.3 tok/s</title></rect>
+<line x1="480.5" y1="140.5" x2="480.5" y2="147.5" stroke="white" stroke-width="1.5" opacity="0.7"/>
+<line x1="475.5" y1="140.5" x2="485.5" y2="140.5" stroke="white" stroke-width="1.5" opacity="0.7"/>
+<line x1="475.5" y1="147.5" x2="485.5" y2="147.5" stroke="white" stroke-width="1.5" opacity="0.7"/>
+<text x="480.5" y="135.5" text-anchor="middle" fill="#f87171" font-size="9">50 ±3</text>
+<rect x="504" y="144" width="43" height="52" rx="3" fill="#00d4aa" opacity="0.85"><title>qwen3:8b: 49.8 ± 3.4 tok/s</title></rect>
+<line x1="525.5" y1="140.4" x2="525.5" y2="147.6" stroke="white" stroke-width="1.5" opacity="0.7"/>
+<line x1="520.5" y1="140.4" x2="530.5" y2="140.4" stroke="white" stroke-width="1.5" opacity="0.7"/>
+<line x1="520.5" y1="147.6" x2="530.5" y2="147.6" stroke="white" stroke-width="1.5" opacity="0.7"/>
+<text x="525.5" y="135.4" text-anchor="middle" fill="#00d4aa" font-size="9">50 ±3</text>
+<text x="10" y="141" text-anchor="middle" fill="#6b7a99" font-size="10" transform="rotate(-90,10,141)">tok/s</text>
+</svg>
+      </div>
+      <div class="chart-box">
+        <div class="chart-title">Prompt Processing Speed by Category (tok/s)</div>
+        <svg width="563" height="220" viewBox="0 0 563 220" class="bar-chart" font-family="'Inter',sans-serif" font-size="10">
+<rect x="50" y="4" width="10" height="10" rx="2" fill="#00d4aa"/>
+<text x="64" y="13" fill="#8892aa" font-size="10" dominant-baseline="auto">bonsai:8b</text>
+<rect x="210" y="4" width="10" height="10" rx="2" fill="#818cf8"/>
+<text x="224" y="13" fill="#8892aa" font-size="10" dominant-baseline="auto">deepseek-r1:8b</text>
+<rect x="370" y="4" width="10" height="10" rx="2" fill="#f59e0b"/>
+<text x="384" y="13" fill="#8892aa" font-size="10" dominant-baseline="auto">gemma4:12b-q3</text>
+<rect x="50" y="22" width="10" height="10" rx="2" fill="#f472b6"/>
+<text x="64" y="31" fill="#8892aa" font-size="10" dominant-baseline="auto">gemma4:26b-moe</text>
+<rect x="210" y="22" width="10" height="10" rx="2" fill="#34d399"/>
+<text x="224" y="31" fill="#8892aa" font-size="10" dominant-baseline="auto">glm4.6v:flash</text>
+<rect x="370" y="22" width="10" height="10" rx="2" fill="#60a5fa"/>
+<text x="384" y="31" fill="#8892aa" font-size="10" dominant-baseline="auto">llama3.3:8b</text>
+<rect x="50" y="40" width="10" height="10" rx="2" fill="#fb923c"/>
+<text x="64" y="49" fill="#8892aa" font-size="10" dominant-baseline="auto">ministral3:8b</text>
+<rect x="210" y="40" width="10" height="10" rx="2" fill="#a78bfa"/>
+<text x="224" y="49" fill="#8892aa" font-size="10" dominant-baseline="auto">phi4-mini:reasoning</text>
+<rect x="370" y="40" width="10" height="10" rx="2" fill="#4ade80"/>
+<text x="384" y="49" fill="#8892aa" font-size="10" dominant-baseline="auto">phi4:14b-reasoning-q3</text>
+<rect x="50" y="58" width="10" height="10" rx="2" fill="#f87171"/>
+<text x="64" y="67" fill="#8892aa" font-size="10" dominant-baseline="auto">qwen3.5:9b</text>
+<rect x="210" y="58" width="10" height="10" rx="2" fill="#00d4aa"/>
+<text x="224" y="67" fill="#8892aa" font-size="10" dominant-baseline="auto">qwen3:8b</text>
+<line x1="50" y1="86.0" x2="558" y2="86.0" stroke="#1e2533" stroke-width="1"/><text x="46" y="89.0" text-anchor="end" fill="#6b7a99">1707</text>
+<line x1="50" y1="113.5" x2="558" y2="113.5" stroke="#1e2533" stroke-width="1"/><text x="46" y="116.5" text-anchor="end" fill="#6b7a99">1281</text>
+<line x1="50" y1="141.0" x2="558" y2="141.0" stroke="#1e2533" stroke-width="1"/><text x="46" y="144.0" text-anchor="end" fill="#6b7a99">854</text>
+<line x1="50" y1="168.5" x2="558" y2="168.5" stroke="#1e2533" stroke-width="1"/><text x="46" y="171.5" text-anchor="end" fill="#6b7a99">427</text>
+<line x1="50" y1="196.0" x2="558" y2="196.0" stroke="#1e2533" stroke-width="1"/><text x="46" y="199.0" text-anchor="end" fill="#6b7a99">0</text>
+<rect x="54" y="193" width="43" height="3" rx="3" fill="#00d4aa" opacity="0.85"><title>bonsai:8b: 53.3 ± 3.5 tok/s</title></rect>
+<rect x="99" y="122" width="43" height="74" rx="3" fill="#818cf8" opacity="0.85"><title>deepseek-r1:8b: 1161.9 ± 217.4 tok/s</title></rect>
+<line x1="120.5" y1="108.0" x2="120.5" y2="136.0" stroke="white" stroke-width="1.5" opacity="0.7"/>
+<line x1="115.5" y1="108.0" x2="125.5" y2="108.0" stroke="white" stroke-width="1.5" opacity="0.7"/>
+<line x1="115.5" y1="136.0" x2="125.5" y2="136.0" stroke="white" stroke-width="1.5" opacity="0.7"/>
+<text x="120.5" y="103.0" text-anchor="middle" fill="#818cf8" font-size="9">1162 ±217</text>
+<rect x="144" y="164" width="43" height="32" rx="3" fill="#f59e0b" opacity="0.85"><title>gemma4:12b-q3: 508.4 ± 107.5 tok/s</title></rect>
+<line x1="165.5" y1="157.1" x2="165.5" y2="170.9" stroke="white" stroke-width="1.5" opacity="0.7"/>
+<line x1="160.5" y1="157.1" x2="170.5" y2="157.1" stroke="white" stroke-width="1.5" opacity="0.7"/>
+<line x1="160.5" y1="170.9" x2="170.5" y2="170.9" stroke="white" stroke-width="1.5" opacity="0.7"/>
+<text x="165.5" y="152.1" text-anchor="middle" fill="#f59e0b" font-size="9">508 ±107</text>
+<rect x="189" y="192" width="43" height="4" rx="3" fill="#f472b6" opacity="0.85"><title>gemma4:26b-moe: 67.7 ± 11.8 tok/s</title></rect>
+<rect x="234" y="122" width="43" height="74" rx="3" fill="#34d399" opacity="0.85"><title>glm4.6v:flash: 1155.2 ± 257.6 tok/s</title></rect>
+<line x1="255.5" y1="105.4" x2="255.5" y2="138.6" stroke="white" stroke-width="1.5" opacity="0.7"/>
+<line x1="250.5" y1="105.4" x2="260.5" y2="105.4" stroke="white" stroke-width="1.5" opacity="0.7"/>
+<line x1="250.5" y1="138.6" x2="260.5" y2="138.6" stroke="white" stroke-width="1.5" opacity="0.7"/>
+<text x="255.5" y="100.4" text-anchor="middle" fill="#34d399" font-size="9">1155 ±258</text>
+<rect x="279" y="113" width="43" height="83" rx="3" fill="#60a5fa" opacity="0.85"><title>llama3.3:8b: 1290.3 ± 234.1 tok/s</title></rect>
+<line x1="300.5" y1="97.9" x2="300.5" y2="128.1" stroke="white" stroke-width="1.5" opacity="0.7"/>
+<line x1="295.5" y1="97.9" x2="305.5" y2="97.9" stroke="white" stroke-width="1.5" opacity="0.7"/>
+<line x1="295.5" y1="128.1" x2="305.5" y2="128.1" stroke="white" stroke-width="1.5" opacity="0.7"/>
+<text x="300.5" y="92.9" text-anchor="middle" fill="#60a5fa" font-size="9">1290 ±234</text>
+<rect x="324" y="124" width="43" height="72" rx="3" fill="#fb923c" opacity="0.85"><title>ministral3:8b: 1121.3 ± 230.1 tok/s</title></rect>
+<line x1="345.5" y1="109.2" x2="345.5" y2="138.8" stroke="white" stroke-width="1.5" opacity="0.7"/>
+<line x1="340.5" y1="109.2" x2="350.5" y2="109.2" stroke="white" stroke-width="1.5" opacity="0.7"/>
+<line x1="340.5" y1="138.8" x2="350.5" y2="138.8" stroke="white" stroke-width="1.5" opacity="0.7"/>
+<text x="345.5" y="104.2" text-anchor="middle" fill="#fb923c" font-size="9">1121 ±230</text>
+<rect x="369" y="192" width="43" height="4" rx="3" fill="#a78bfa" opacity="0.85"><title>phi4-mini:reasoning: 73.8 ± 6.8 tok/s</title></rect>
+<rect x="414" y="165" width="43" height="31" rx="3" fill="#4ade80" opacity="0.85"><title>phi4:14b-reasoning-q3: 496.0 ± 160.0 tok/s</title></rect>
+<line x1="435.5" y1="154.7" x2="435.5" y2="175.3" stroke="white" stroke-width="1.5" opacity="0.7"/>
+<line x1="430.5" y1="154.7" x2="440.5" y2="154.7" stroke="white" stroke-width="1.5" opacity="0.7"/>
+<line x1="430.5" y1="175.3" x2="440.5" y2="175.3" stroke="white" stroke-width="1.5" opacity="0.7"/>
+<text x="435.5" y="149.7" text-anchor="middle" fill="#4ade80" font-size="9">496 ±160</text>
+<rect x="459" y="146" width="43" height="50" rx="3" fill="#f87171" opacity="0.85"><title>qwen3.5:9b: 781.2 ± 138.7 tok/s</title></rect>
+<line x1="480.5" y1="137.1" x2="480.5" y2="154.9" stroke="white" stroke-width="1.5" opacity="0.7"/>
+<line x1="475.5" y1="137.1" x2="485.5" y2="137.1" stroke="white" stroke-width="1.5" opacity="0.7"/>
+<line x1="475.5" y1="154.9" x2="485.5" y2="154.9" stroke="white" stroke-width="1.5" opacity="0.7"/>
+<text x="480.5" y="132.1" text-anchor="middle" fill="#f87171" font-size="9">781 ±139</text>
+<rect x="504" y="121" width="43" height="75" rx="3" fill="#00d4aa" opacity="0.85"><title>qwen3:8b: 1170.5 ± 210.5 tok/s</title></rect>
+<line x1="525.5" y1="107.4" x2="525.5" y2="134.6" stroke="white" stroke-width="1.5" opacity="0.7"/>
+<line x1="520.5" y1="107.4" x2="530.5" y2="107.4" stroke="white" stroke-width="1.5" opacity="0.7"/>
+<line x1="520.5" y1="134.6" x2="530.5" y2="134.6" stroke="white" stroke-width="1.5" opacity="0.7"/>
+<text x="525.5" y="102.4" text-anchor="middle" fill="#00d4aa" font-size="9">1171 ±211</text>
+<text x="10" y="141" text-anchor="middle" fill="#6b7a99" font-size="10" transform="rotate(-90,10,141)">tok/s</text>
+</svg>
+      </div>
+    </div>
+  </section>
+
+  <section id="exercises">
+    <h2><span>04</span>Exercise Detail</h2>
+    <div class="table-wrap scroll-x">
+    <table class="results-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Exercise</th>
+          <th class="model-col">bonsai:8b</th><th class="model-col">deepseek-r1:8b</th><th class="model-col">gemma4:12b-q3</th><th class="model-col">gemma4:26b-moe</th><th class="model-col">glm4.6v:flash</th><th class="model-col">llama3.3:8b</th><th class="model-col">ministral3:8b</th><th class="model-col">phi4-mini:reasoning</th><th class="model-col">phi4:14b-reasoning-q3</th><th class="model-col">qwen3.5:9b</th><th class="model-col">qwen3:8b</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="cat-row"><td colspan="14" style="color:#06b6d4"><span class="cat-label">▸ Math</span></td></tr><tr class=""><td class="ex-id">01</td><td class="ex-desc">Single-digit addition (7 + 8)</td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">71.3 tok/s · 75ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">56.5 tok/s · 143ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">37.6 tok/s · 286ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">30.3 tok/s · 2.64s</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">48.4 tok/s · 869ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">67.8 tok/s · 91ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">68.8 tok/s · 81ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">86.8 tok/s · 1.48s</span></td><td class="fail"><span class="badge fail-badge">✗</span><span class="cell-metrics">0/3 runs passed</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">49.8 tok/s · 219ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">58.6 tok/s · 138ms</span></td></tr><tr class="dim-row"><td class="ex-id">02</td><td class="ex-desc">Multi-step arithmetic ((12 * 4) - 17)</td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">62.6 tok/s · 460ms</span></td><td class="fail"><span class="badge fail-badge">✗</span><span class="cell-metrics">0/3 runs passed</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">37.2 tok/s · 283ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">30.8 tok/s · 4.05s</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">44.7 tok/s · 2.44s</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">51.2 tok/s · 5.90s</span></td><td class="fail"><span class="badge fail-badge">✗</span><span class="cell-metrics">0/3 runs passed</span></td><td class="fail"><span class="badge fail-badge">✗</span><span class="cell-metrics">0/3 runs passed</span></td><td class="fail"><span class="badge fail-badge">✗</span><span class="cell-metrics">0/3 runs passed</span></td><td class="fail"><span class="badge fail-badge">✗</span><span class="cell-metrics">0/3 runs passed</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">49.8 tok/s · 6.06s</span></td></tr><tr class=""><td class="ex-id">03</td><td class="ex-desc">Modulo (100 mod 7)</td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">66.2 tok/s · 194ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">48.8 tok/s · 718ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">38.4 tok/s · 253ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">30.9 tok/s · 3.82s</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">46.4 tok/s · 452ms</span></td><td class="fail"><span class="badge fail-badge">✗</span><span class="cell-metrics">0/3 runs passed</span></td><td class="fail"><span class="badge fail-badge">✗</span><span class="cell-metrics">0/3 runs passed</span></td><td class="fail"><span class="badge fail-badge">✗</span><span class="cell-metrics">1/3 runs passed</span></td><td class="fail"><span class="badge fail-badge">✗</span><span class="cell-metrics">0/3 runs passed</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">52.5 tok/s · 160ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">50.1 tok/s · 6.03s</span></td></tr><tr class="dim-row"><td class="ex-id">04</td><td class="ex-desc">Prime check (97)</td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">122.4 tok/s · 45ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">51.0 tok/s · 293ms</span></td><td class="fail"><span class="badge fail-badge">✗</span><span class="cell-metrics">0/3 runs passed</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">29.9 tok/s · 7.37s</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">53.9 tok/s · 136ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">62.2 tok/s · 114ms</span></td><td class="fail"><span class="badge fail-badge">✗</span><span class="cell-metrics">0/3 runs passed</span></td><td class="fail"><span class="badge fail-badge">✗</span><span class="cell-metrics">0/3 runs passed</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">45.0 tok/s · 148ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">53.0 tok/s · 160ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">58.0 tok/s · 140ms</span></td></tr><tr class=""><td class="ex-id">05</td><td class="ex-desc">10th Fibonacci number</td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">90.9 tok/s · 63ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">50.5 tok/s · 342ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">36.6 tok/s · 301ms</span></td><td class="fail"><span class="badge fail-badge">✗</span><span class="cell-metrics">0/3 runs passed</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">47.2 tok/s · 342ms</span></td><td class="fail"><span class="badge fail-badge">✗</span><span class="cell-metrics">0/3 runs passed</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">68.6 tok/s · 88ms</span></td><td class="fail"><span class="badge fail-badge">✗</span><span class="cell-metrics">0/3 runs passed</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">29.3 tok/s · 10.32s</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">50.6 tok/s · 190ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">49.2 tok/s · 6.15s</span></td></tr><tr class="dim-row"><td class="ex-id">06</td><td class="ex-desc">Roman numeral XLII to decimal</td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">91.3 tok/s · 62ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">51.1 tok/s · 295ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">36.6 tok/s · 288ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">30.0 tok/s · 5.68s</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">53.4 tok/s · 137ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">65.7 tok/s · 94ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">68.3 tok/s · 81ms</span></td><td class="fail"><span class="badge fail-badge">✗</span><span class="cell-metrics">0/3 runs passed</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">39.5 tok/s · 207ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">51.0 tok/s · 183ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">50.1 tok/s · 6.03s</span></td></tr><tr class="cat-row"><td colspan="14" style="color:#818cf8"><span class="cat-label">▸ Factual</span></td></tr><tr class=""><td class="ex-id">07</td><td class="ex-desc">Capital of Myanmar</td><td class="fail"><span class="badge fail-badge">✗</span><span class="cell-metrics">0/3 runs passed</span></td><td class="fail"><span class="badge fail-badge">✗</span><span class="cell-metrics">0/3 runs passed</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">36.0 tok/s · 347ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">30.0 tok/s · 2.97s</span></td><td class="fail"><span class="badge fail-badge">✗</span><span class="cell-metrics">0/3 runs passed</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">56.7 tok/s · 193ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">54.9 tok/s · 150ms</span></td><td class="fail"><span class="badge fail-badge">✗</span><span class="cell-metrics">0/3 runs passed</span></td><td class="fail"><span class="badge fail-badge">✗</span><span class="cell-metrics">0/3 runs passed</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">48.2 tok/s · 252ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">49.8 tok/s · 6.07s</span></td></tr><tr class="dim-row"><td class="ex-id">08</td><td class="ex-desc">Chemical symbol for tungsten</td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">109.3 tok/s · 49ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">53.7 tok/s · 134ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">37.7 tok/s · 255ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">31.1 tok/s · 2.38s</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">47.3 tok/s · 317ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">65.4 tok/s · 94ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">68.5 tok/s · 75ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">88.9 tok/s · 989ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">39.5 tok/s · 204ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">52.0 tok/s · 161ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">50.5 tok/s · 909ms</span></td></tr><tr class=""><td class="ex-id">09</td><td class="ex-desc">Number of bones in the adult human body</td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">75.3 tok/s · 81ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">46.4 tok/s · 385ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">36.4 tok/s · 317ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">29.6 tok/s · 3.24s</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">47.5 tok/s · 317ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">65.7 tok/s · 95ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">46.7 tok/s · 131ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">88.2 tok/s · 2.48s</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">39.4 tok/s · 206ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">49.7 tok/s · 209ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">54.5 tok/s · 219ms</span></td></tr><tr class="dim-row"><td class="ex-id">10</td><td class="ex-desc">Year the Berlin Wall fell</td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">70.8 tok/s · 91ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">53.1 tok/s · 188ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">35.6 tok/s · 350ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">29.0 tok/s · 3.19s</span></td><td class="fail"><span class="badge fail-badge">✗</span><span class="cell-metrics">0/3 runs passed</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">62.1 tok/s · 116ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">43.3 tok/s · 160ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">87.5 tok/s · 3.14s</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">46.5 tok/s · 143ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">48.4 tok/s · 232ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">49.7 tok/s · 1.31s</span></td></tr><tr class=""><td class="ex-id">11</td><td class="ex-desc">Deepest ocean trench</td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">70.4 tok/s · 104ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">52.3 tok/s · 210ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">35.0 tok/s · 443ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">30.2 tok/s · 2.58s</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">44.7 tok/s · 6.75s</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">57.6 tok/s · 172ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">44.8 tok/s · 157ms</span></td><td class="fail"><span class="badge fail-badge">✗</span><span class="cell-metrics">1/3 runs passed</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">35.5 tok/s · 336ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">48.4 tok/s · 231ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">48.8 tok/s · 6.19s</span></td></tr><tr class="cat-row"><td colspan="14" style="color:#c084fc"><span class="cat-label">▸ Reasoning</span></td></tr><tr class="dim-row"><td class="ex-id">12</td><td class="ex-desc">Odd one out (abstract: river among geometry)</td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">116.4 tok/s · 43ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">58.2 tok/s · 132ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">38.1 tok/s · 258ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">29.5 tok/s · 6.43s</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">44.5 tok/s · 6.23s</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">49.4 tok/s · 20.78s</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">89.8 tok/s · 68ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">86.0 tok/s · 9.20s</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">39.2 tok/s · 212ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">52.0 tok/s · 168ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">50.0 tok/s · 4.63s</span></td></tr><tr class=""><td class="ex-id">13</td><td class="ex-desc">Letter sequence: O, T, T, F, F, S, S, ___</td><td class="fail"><span class="badge fail-badge">✗</span><span class="cell-metrics">0/3 runs passed</span></td><td class="fail"><span class="badge fail-badge">✗</span><span class="cell-metrics">0/3 runs passed</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">38.2 tok/s · 269ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">29.6 tok/s · 4.41s</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">43.7 tok/s · 23.48s</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">49.1 tok/s · 20.91s</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">67.0 tok/s · 85ms</span></td><td class="fail"><span class="badge fail-badge">✗</span><span class="cell-metrics">0/3 runs passed</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">34.6 tok/s · 319ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">52.2 tok/s · 179ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">47.8 tok/s · 21.49s</span></td></tr><tr class="dim-row"><td class="ex-id">14</td><td class="ex-desc">Next in sequence: 1, 1, 2, 3, 5, 8, 13, ___</td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">86.5 tok/s · 61ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">51.4 tok/s · 261ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">36.9 tok/s · 301ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">31.0 tok/s · 4.48s</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">48.9 tok/s · 330ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">61.8 tok/s · 122ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">51.8 tok/s · 113ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">85.5 tok/s · 6.91s</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">24.3 tok/s · 42.23s</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">51.2 tok/s · 199ms</span></td><td class="fail"><span class="badge fail-badge">✗</span><span class="cell-metrics">0/3 runs passed</span></td></tr><tr class=""><td class="ex-id">15</td><td class="ex-desc">Counterfactual: days in February in a leap year</td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">90.9 tok/s · 57ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">48.6 tok/s · 782ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">35.5 tok/s · 389ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">29.5 tok/s · 6.00s</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">48.1 tok/s · 1.12s</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">64.3 tok/s · 98ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">51.4 tok/s · 107ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">87.6 tok/s · 4.33s</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">22.1 tok/s · 46.51s</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">50.2 tok/s · 189ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">49.1 tok/s · 4.00s</span></td></tr><tr class="dim-row"><td class="ex-id">16</td><td class="ex-desc">Verbal reasoning: before yesterday's tomorrow</td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">59.7 tok/s · 1.46s</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">46.8 tok/s · 21.93s</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">31.4 tok/s · 1.52s</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">29.9 tok/s · 8.66s</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">44.4 tok/s · 23.13s</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">50.9 tok/s · 1.30s</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">41.2 tok/s · 1.04s</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">83.7 tok/s · 7.96s</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">23.8 tok/s · 43.13s</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">44.6 tok/s · 767ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">48.1 tok/s · 21.36s</span></td></tr><tr class="cat-row"><td colspan="14" style="color:#f59e0b"><span class="cat-label">▸ Instruction</span></td></tr><tr class=""><td class="ex-id">17</td><td class="ex-desc">List exactly 3 fruits, one per line</td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">67.1 tok/s · 128ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">56.0 tok/s · 217ms</span></td><td class="fail"><span class="badge fail-badge">✗</span><span class="cell-metrics">0/3 runs passed</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">30.1 tok/s · 4.41s</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">49.7 tok/s · 225ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">53.9 tok/s · 220ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">50.5 tok/s · 179ms</span></td><td class="fail"><span class="badge fail-badge">✗</span><span class="cell-metrics">0/3 runs passed</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">35.0 tok/s · 315ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">47.6 tok/s · 278ms</span></td><td class="fail"><span class="badge fail-badge">✗</span><span class="cell-metrics">0/3 runs passed</span></td></tr><tr class="dim-row"><td class="ex-id">18</td><td class="ex-desc">Respond with valid JSON {name, age}</td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">63.5 tok/s · 229ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">53.2 tok/s · 531ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">32.8 tok/s · 1.03s</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">29.8 tok/s · 9.15s</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">46.5 tok/s · 562ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">51.6 tok/s · 332ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">49.1 tok/s · 493ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">82.7 tok/s · 9.16s</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">32.2 tok/s · 741ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">44.8 tok/s · 698ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">48.0 tok/s · 21.40s</span></td></tr><tr class=""><td class="ex-id">19</td><td class="ex-desc">Describe a cat without using the word 'cat'</td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">62.2 tok/s · 395ms</span></td><td class="fail"><span class="badge fail-badge">✗</span><span class="cell-metrics">0/3 runs passed</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">33.7 tok/s · 705ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">29.7 tok/s · 10.81s</span></td><td class="fail"><span class="badge fail-badge">✗</span><span class="cell-metrics">0/3 runs passed</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">50.1 tok/s · 640ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">47.4 tok/s · 676ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">82.7 tok/s · 3.66s</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">28.4 tok/s · 10.66s</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">47.0 tok/s · 582ms</span></td><td class="fail"><span class="badge fail-badge">✗</span><span class="cell-metrics">0/3 runs passed</span></td></tr><tr class="dim-row"><td class="ex-id">20</td><td class="ex-desc">Answer in exactly one word</td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">118.8 tok/s · 45ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">62.8 tok/s · 116ms</span></td><td class="fail"><span class="badge fail-badge">✗</span><span class="cell-metrics">0/3 runs passed</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">30.2 tok/s · 3.05s</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">57.0 tok/s · 127ms</span></td><td class="fail"><span class="badge fail-badge">✗</span><span class="cell-metrics">0/3 runs passed</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">81.2 tok/s · 60ms</span></td><td class="fail"><span class="badge fail-badge">✗</span><span class="cell-metrics">0/3 runs passed</span></td><td class="fail"><span class="badge fail-badge">✗</span><span class="cell-metrics">0/3 runs passed</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">54.5 tok/s · 155ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">59.2 tok/s · 120ms</span></td></tr><tr class="cat-row"><td colspan="14" style="color:#34d399"><span class="cat-label">▸ Code</span></td></tr><tr class=""><td class="ex-id">21</td><td class="ex-desc">Python: squares list comprehension</td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">63.0 tok/s · 317ms</span></td><td class="fail"><span class="badge fail-badge">✗</span><span class="cell-metrics">0/3 runs passed</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">33.2 tok/s · 859ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">30.1 tok/s · 7.77s</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">49.6 tok/s · 506ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">50.5 tok/s · 518ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">49.2 tok/s · 451ms</span></td><td class="fail"><span class="badge fail-badge">✗</span><span class="cell-metrics">1/3 runs passed</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">32.2 tok/s · 674ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">46.9 tok/s · 582ms</span></td><td class="fail"><span class="badge fail-badge">✗</span><span class="cell-metrics">0/3 runs passed</span></td></tr><tr class="dim-row"><td class="ex-id">22</td><td class="ex-desc">Python: reverse a string</td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">70.0 tok/s · 108ms</span></td><td class="fail"><span class="badge fail-badge">✗</span><span class="cell-metrics">0/3 runs passed</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">34.2 tok/s · 595ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">30.2 tok/s · 5.75s</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">48.8 tok/s · 348ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">51.5 tok/s · 348ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">43.0 tok/s · 367ms</span></td><td class="fail"><span class="badge fail-badge">✗</span><span class="cell-metrics">0/3 runs passed</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">34.3 tok/s · 431ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">48.1 tok/s · 357ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">52.3 tok/s · 268ms</span></td></tr><tr class=""><td class="ex-id">23</td><td class="ex-desc">Python: FizzBuzz output for n=15</td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">54.9 tok/s · 1.37s</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">46.1 tok/s · 1.79s</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">32.5 tok/s · 2.92s</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">29.7 tok/s · 13.82s</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">44.3 tok/s · 1.83s</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">53.2 tok/s · 1.51s</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">44.5 tok/s · 1.88s</span></td><td class="fail"><span class="badge fail-badge">✗</span><span class="cell-metrics">0/3 runs passed</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">26.4 tok/s · 2.84s</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">42.5 tok/s · 2.02s</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">48.0 tok/s · 11.69s</span></td></tr><tr class="dim-row"><td class="ex-id">24</td><td class="ex-desc">Python: sum of a list</td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">60.2 tok/s · 347ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">49.8 tok/s · 565ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">33.2 tok/s · 981ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">30.0 tok/s · 6.46s</span></td><td class="fail"><span class="badge fail-badge">✗</span><span class="cell-metrics">0/3 runs passed</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">54.9 tok/s · 457ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">49.0 tok/s · 516ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">85.2 tok/s · 8.51s</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">32.2 tok/s · 675ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">45.0 tok/s · 673ms</span></td><td class="fail"><span class="badge fail-badge">✗</span><span class="cell-metrics">0/3 runs passed</span></td></tr><tr class="cat-row"><td colspan="14" style="color:#f87171"><span class="cat-label">▸ Extraction</span></td></tr><tr class=""><td class="ex-id">25</td><td class="ex-desc">Extract secret code from paragraph</td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">74.5 tok/s · 86ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">51.9 tok/s · 290ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">35.0 tok/s · 486ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">29.8 tok/s · 8.99s</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">44.2 tok/s · 230ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">51.0 tok/s · 5.94s</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">60.9 tok/s · 127ms</span></td><td class="fail"><span class="badge fail-badge">✗</span><span class="cell-metrics">0/3 runs passed</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">37.3 tok/s · 222ms</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">50.2 tok/s · 239ms</span></td><td class="fail"><span class="badge fail-badge">✗</span><span class="cell-metrics">0/3 runs passed</span></td></tr><tr class="dim-row"><td class="ex-id">26</td><td class="ex-desc">Summarize text in ≤ 40 words</td><td class="fail"><span class="badge fail-badge">✗</span><span class="cell-metrics">0/3 runs passed</span></td><td class="fail"><span class="badge fail-badge">✗</span><span class="cell-metrics">0/3 runs passed</span></td><td class="fail"><span class="badge fail-badge">✗</span><span class="cell-metrics">0/3 runs passed</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">29.2 tok/s · 35.47s</span></td><td class="fail"><span class="badge fail-badge">✗</span><span class="cell-metrics">0/3 runs passed</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">51.2 tok/s · 762ms</span></td><td class="fail"><span class="badge fail-badge">✗</span><span class="cell-metrics">0/3 runs passed</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">84.1 tok/s · 12.23s</span></td><td class="fail"><span class="badge fail-badge">✗</span><span class="cell-metrics">0/3 runs passed</span></td><td class="pass"><span class="badge pass-badge">✓</span><span class="cell-metrics">41.5 tok/s · 1.22s</span></td><td class="fail"><span class="badge fail-badge">✗</span><span class="cell-metrics">0/3 runs passed</span></td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+</main>
+
+<footer>llama.cpp bench report · 2026-06-13 11:02</footer>
+</body>
+</html>

@@ -1,0 +1,478 @@
+{
+  "model": "deepseek-r1:8b",
+  "timestamp": "2026-06-12T21:06:46.530695",
+  "score": {
+    "passed": 19,
+    "total": 26
+  },
+  "results": [
+    {
+      "exercise_id": 1,
+      "category": "Math",
+      "description": "Single-digit addition (7 + 8)",
+      "passed": true,
+      "response_text": "15",
+      "error": null,
+      "metrics": {
+        "prompt_tokens": 34,
+        "prompt_eval_time_ms": 35.055,
+        "prompt_speed_tok_s": 969.9044358864642,
+        "gen_tokens": 6,
+        "gen_time_ms": 106.195,
+        "gen_speed_tok_s": 56.49983520881398,
+        "total_wall_time_ms": 143.30794799997193,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 2,
+      "category": "Math",
+      "description": "Multi-step arithmetic ((12 * 4) - 17)",
+      "passed": false,
+      "response_text": "8",
+      "error": "0/3 runs passed",
+      "metrics": {
+        "prompt_tokens": 40,
+        "prompt_eval_time_ms": 36.144,
+        "prompt_speed_tok_s": 1106.6843736166445,
+        "gen_tokens": 5,
+        "gen_time_ms": 85.834,
+        "gen_speed_tok_s": 58.25197474194375,
+        "total_wall_time_ms": 124.26440000001548,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 3,
+      "category": "Math",
+      "description": "Modulo (100 mod 7)",
+      "passed": true,
+      "response_text": "100 divided by 7 is 14 with a remainder of 2, so 100 mod 7 is 2.",
+      "error": null,
+      "metrics": {
+        "prompt_tokens": 36,
+        "prompt_eval_time_ms": 35.236,
+        "prompt_speed_tok_s": 1021.6823703030992,
+        "gen_tokens": 33,
+        "gen_time_ms": 676.282,
+        "gen_speed_tok_s": 48.796212230992396,
+        "total_wall_time_ms": 717.530838000016,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 4,
+      "category": "Math",
+      "description": "Prime check (97)",
+      "passed": true,
+      "response_text": "Yes, 97 is a prime number.",
+      "error": null,
+      "metrics": {
+        "prompt_tokens": 38,
+        "prompt_eval_time_ms": 35.743,
+        "prompt_speed_tok_s": 1063.1452312340878,
+        "gen_tokens": 13,
+        "gen_time_ms": 254.816,
+        "gen_speed_tok_s": 51.017204571141534,
+        "total_wall_time_ms": 293.25813000002654,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 5,
+      "category": "Math",
+      "description": "10th Fibonacci number",
+      "passed": true,
+      "response_text": "The 10th Fibonacci number is 55.",
+      "error": null,
+      "metrics": {
+        "prompt_tokens": 51,
+        "prompt_eval_time_ms": 42.537,
+        "prompt_speed_tok_s": 1198.9562028351788,
+        "gen_tokens": 15,
+        "gen_time_ms": 296.947,
+        "gen_speed_tok_s": 50.51406479944232,
+        "total_wall_time_ms": 342.0486879999771,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 6,
+      "category": "Math",
+      "description": "Roman numeral XLII to decimal",
+      "passed": true,
+      "response_text": "The Roman numeral XLII is 42.",
+      "error": null,
+      "metrics": {
+        "prompt_tokens": 37,
+        "prompt_eval_time_ms": 35.042,
+        "prompt_speed_tok_s": 1055.8758061754465,
+        "gen_tokens": 13,
+        "gen_time_ms": 254.346,
+        "gen_speed_tok_s": 51.1114780653126,
+        "total_wall_time_ms": 294.63905599999407,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 7,
+      "category": "Factual",
+      "description": "Capital of Myanmar",
+      "passed": false,
+      "response_text": "The capital of Myanmar is Naypyitaw.",
+      "error": "0/3 runs passed",
+      "metrics": {
+        "prompt_tokens": 34,
+        "prompt_eval_time_ms": 37.933,
+        "prompt_speed_tok_s": 896.3171908364748,
+        "gen_tokens": 13,
+        "gen_time_ms": 277.74,
+        "gen_speed_tok_s": 46.80636566573054,
+        "total_wall_time_ms": 318.44085599999516,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 8,
+      "category": "Factual",
+      "description": "Chemical symbol for tungsten",
+      "passed": true,
+      "response_text": "W",
+      "error": null,
+      "metrics": {
+        "prompt_tokens": 35,
+        "prompt_eval_time_ms": 38.516,
+        "prompt_speed_tok_s": 908.7132620209784,
+        "gen_tokens": 5,
+        "gen_time_ms": 93.185,
+        "gen_speed_tok_s": 53.656704405215436,
+        "total_wall_time_ms": 133.80348300000833,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 9,
+      "category": "Factual",
+      "description": "Number of bones in the adult human body",
+      "passed": true,
+      "response_text": "There are 206 bones in the adult human body.",
+      "error": null,
+      "metrics": {
+        "prompt_tokens": 36,
+        "prompt_eval_time_ms": 38.14,
+        "prompt_speed_tok_s": 943.8909281594127,
+        "gen_tokens": 16,
+        "gen_time_ms": 344.85,
+        "gen_speed_tok_s": 46.396984196027255,
+        "total_wall_time_ms": 385.22944300001427,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 10,
+      "category": "Factual",
+      "description": "Year the Berlin Wall fell",
+      "passed": true,
+      "response_text": "1989",
+      "error": null,
+      "metrics": {
+        "prompt_tokens": 37,
+        "prompt_eval_time_ms": 35.88,
+        "prompt_speed_tok_s": 1031.215161649944,
+        "gen_tokens": 8,
+        "gen_time_ms": 150.771,
+        "gen_speed_tok_s": 53.06060183987638,
+        "total_wall_time_ms": 188.4716170000047,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 11,
+      "category": "Factual",
+      "description": "Deepest ocean trench",
+      "passed": true,
+      "response_text": "The Mariana Trench.",
+      "error": null,
+      "metrics": {
+        "prompt_tokens": 38,
+        "prompt_eval_time_ms": 36.295,
+        "prompt_speed_tok_s": 1046.9761675161867,
+        "gen_tokens": 9,
+        "gen_time_ms": 172.122,
+        "gen_speed_tok_s": 52.28849304563042,
+        "total_wall_time_ms": 210.27681100002837,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 12,
+      "category": "Reasoning",
+      "description": "Odd one out (abstract: river among geometry)",
+      "passed": true,
+      "response_text": "River",
+      "error": null,
+      "metrics": {
+        "prompt_tokens": 50,
+        "prompt_eval_time_ms": 42.339,
+        "prompt_speed_tok_s": 1180.9442830487258,
+        "gen_tokens": 5,
+        "gen_time_ms": 85.893,
+        "gen_speed_tok_s": 58.2119613938272,
+        "total_wall_time_ms": 131.75476399999297,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 13,
+      "category": "Reasoning",
+      "description": "Letter sequence: O, T, T, F, F, S, S, ___",
+      "passed": false,
+      "response_text": "S",
+      "error": "0/3 runs passed",
+      "metrics": {
+        "prompt_tokens": 59,
+        "prompt_eval_time_ms": 42.732,
+        "prompt_speed_tok_s": 1380.6983057193672,
+        "gen_tokens": 5,
+        "gen_time_ms": 86.602,
+        "gen_speed_tok_s": 57.73538717350639,
+        "total_wall_time_ms": 132.05811199998152,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 14,
+      "category": "Reasoning",
+      "description": "Next in sequence: 1, 1, 2, 3, 5, 8, 13, ___",
+      "passed": true,
+      "response_text": "The next number is 21.",
+      "error": null,
+      "metrics": {
+        "prompt_tokens": 59,
+        "prompt_eval_time_ms": 43.167,
+        "prompt_speed_tok_s": 1366.7848124724906,
+        "gen_tokens": 11,
+        "gen_time_ms": 214.164,
+        "gen_speed_tok_s": 51.362507237444206,
+        "total_wall_time_ms": 261.20765100000654,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 15,
+      "category": "Reasoning",
+      "description": "Counterfactual: days in February in a leap year",
+      "passed": true,
+      "response_text": "In a leap year, February has 29 days. A year divisible by 400 is a leap year, so February has 29 days.",
+      "error": null,
+      "metrics": {
+        "prompt_tokens": 47,
+        "prompt_eval_time_ms": 38.209,
+        "prompt_speed_tok_s": 1230.0766835038864,
+        "gen_tokens": 36,
+        "gen_time_ms": 741.047,
+        "gen_speed_tok_s": 48.57991463429445,
+        "total_wall_time_ms": 781.9865760000084,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 16,
+      "category": "Reasoning",
+      "description": "Verbal reasoning: before yesterday's tomorrow",
+      "passed": true,
+      "response_text": "First, the question is: If today is Wednesday, what day was 'the day before yesterday's tomorrow'?\n\nI need to break this down step by step.\n\nStart with today: Wednesday.\n\nNow, \"yesterday's tomorrow\" \u2013 let's think about that.\n\nYesterday was Tuesday (since today is Wednesday).\n\nTomorrow of yesterday: If yesterday was Tuesday, then tomorrow of yesterday is Wednesday.\n\nBut the phrase is \"the day before yesterday's tomorrow\". So, I need to find yesterday's tomorrow first.\n\nLet Y be yesterday.\n\nY = Tuesday (because today is Wednesday).\n\nThen, tomorrow of Y: tomorrow of Tuesday is Wednesday.\n\nNow, \"the day before\" that. So, the day before yesterday's tomorrow.\n\nYesterday's tomorrow is Wednesday.\n\nThe day before Wednesday is Tuesday.\n\nBut let's read the phrase carefully: \"the day before yesterday's tomorrow\".\n\nSo, it's referring to the day before the tomorrow of yesterday.\n\nWe have:\n\n- Yesterday: Tuesday\n\n- Tomorrow of yesterday: Wednesday\n\n- Then, the day before that: Tuesday\n\nBut the question is asking for what day that was, given today is Wednesday.\n\nPerhaps I should think in terms of days from today.\n\nToday is Wednesday.\n\nYesterday was Tuesday.\n\nTomorrow of yesterday: Since yesterday was Tuesday, its tomorrow is Wednesday.\n\nNow, \"the day before yesterday's tomorrow\" \u2013 so, yesterday's tomorrow is Wednesday, and the day before that is Tuesday.\n\nBut let's confirm the sequence.\n\nLet me define:\n\nLet T be today, which is Wednesday.\n\nYesterday: Y = T - 1 day = Tuesday\n\nTomorrow of yesterday: Y_tomorrow = Y + 1 day = Tuesday + 1 = Wednesday\n\nThen, the day before yesterday's tomorrow: day before Y_tomorrow = day before Wednesday.\n\nDay before Wednesday is Tuesday.\n\nSo, it was Tuesday.\n\nBut the phrase is \"the day before yesterday's tomorrow\", and we're to find what that day was when today is Wednesday.\n\nAnother way: \"yesterday's tomorrow\" is a way to say today, because yesterday's tomorrow is today.\n\nIf today is Wednesday, then yesterday was Tuesday, and tomorrow of Tuesday is Wednesday, which is today.\n\nSo, \"yesterday's tomorrow\" means today.\n\nThen, \"the day before yesterday's tomorrow\" \u2013 yesterday's tomorrow is today, so the day before today is yesterday.\n\nBut yesterday is Tuesday, and the day before yesterday's tomorrow is the day before today, which is yesterday, Tuesday.\n\nLet's parse the language.\n\n\"Yesterday's tomorrow\" is today.\n\nThen \"the day before yesterday's tomorrow\" is the day before today, which is yesterday.\n\nAnd yesterday is Tuesday.\n\nSo, it was Tuesday.\n\nBut let's make sure.\n\nPerhaps I should think of it as a single expression.\n\nLet me denote the days:\n\nAssume days are numbered, with today as day 0.\n\nToday: Wednesday\n\nYesterday: Tuesday (day -1)\n\nTomorrow of yesterday: Wednesday (day 0)\n\nThen, the day before that: Tuesday (day -1)\n\nBut the question is \"what day was 'the day before yesterday's tomorrow'?\"\n\nSo, 'the day before yesterday's tomorrow' is Tuesday.\n\nAnd since today is Wednesday, that day was Tuesday.\n\nBut let's see the exact wording: \"the day before yesterday's tomorrow\"\n\nYesterday's tomorrow is Wednesday.\n\nThe day before Wednesday is Tuesday.\n\nYes.\n\nAnother interpretation: sometimes people say \"yesterday's tomorrow\" to mean the day after yesterday, but that doesn't make sense.\n\n\"Yesterday's tomorrow\" \u2013 yesterday is a specific day, its tomorrow is the next day, which is today.\n\nFor example, if today is Wednesday, yesterday was Tuesday, and the tomorrow of Tuesday is Wednesday, so it's today.\n\nSimilarly, \"the day before yesterday's tomorrow\" would be the day before today, which is yesterday.\n\nIn this case, yesterday is Tuesday.\n\nSo, the answer should be Tuesday.\n\nBut the question says \"reply with only the day name\", so I need to output Tuesday.\n\nBut let's double-check with a calendar or something.\n\nSuppose today is Wednesday.\n\nYesterday: Tuesday\n\nTomorrow of yesterday: Wednesday\n\nThe day before that: Tuesday\n\nYes.\n\nPerhaps the phrase is meant to be confusing.\n\nLet me read it as: \"the day before\" and \"yesterday's tomorrow\" separately.\n\nBut it's \"the day before yesterday's tomorrow\", so it's one unit.\n\nIn English, \"yesterday's tomorrow\" is a bit awkward, but it means today.\n\nThen \"the day before\" that is yesterday.\n\nSo, yesterday was Tuesday.\n\nTherefore, the day was Tuesday.\n\nBut the question is \"what day was 'the day before yesterday's tomorrow'?\"\n\nAnd today is Wednesday, so that day was Tuesday.\n\nPerhaps I should consider the reference point.\n\nAnother way: let's think from the perspective of yesterday.\n\nYesterday was Tuesday.\n\nIts tomorrow is Wednesday.\n\nNow, the day before that is Tuesday.\n\nBut \"the day before yesterday's tomorrow\" is Tuesday",
+      "error": null,
+      "metrics": {
+        "prompt_tokens": 49,
+        "prompt_eval_time_ms": 42.252,
+        "prompt_speed_tok_s": 1159.7084161696487,
+        "gen_tokens": 1024,
+        "gen_time_ms": 21879.682,
+        "gen_speed_tok_s": 46.80141146475529,
+        "total_wall_time_ms": 21927.87663900003,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 17,
+      "category": "Instruction",
+      "description": "List exactly 3 fruits, one per line",
+      "passed": true,
+      "response_text": "Apple\nBanana\nOrange",
+      "error": null,
+      "metrics": {
+        "prompt_tokens": 44,
+        "prompt_eval_time_ms": 36.361,
+        "prompt_speed_tok_s": 1210.0877313605238,
+        "gen_tokens": 10,
+        "gen_time_ms": 178.51,
+        "gen_speed_tok_s": 56.01927062909641,
+        "total_wall_time_ms": 216.6474950000179,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 18,
+      "category": "Instruction",
+      "description": "Respond with valid JSON {name, age}",
+      "passed": true,
+      "response_text": "```json\n{\n  \"name\": \"John Doe\",\n  \"age\": 30\n}\n```",
+      "error": null,
+      "metrics": {
+        "prompt_tokens": 53,
+        "prompt_eval_time_ms": 39.088,
+        "prompt_speed_tok_s": 1355.914858780188,
+        "gen_tokens": 26,
+        "gen_time_ms": 488.472,
+        "gen_speed_tok_s": 53.227206472428314,
+        "total_wall_time_ms": 530.8195129999831,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 19,
+      "category": "Instruction",
+      "description": "Describe a cat without using the word 'cat'",
+      "passed": false,
+      "response_text": "A feline companion with soft fur and a bushy tail that communicates through purrs and meows.",
+      "error": "0/3 runs passed",
+      "metrics": {
+        "prompt_tokens": 48,
+        "prompt_eval_time_ms": 35.013,
+        "prompt_speed_tok_s": 1370.919372804387,
+        "gen_tokens": 24,
+        "gen_time_ms": 448.867,
+        "gen_speed_tok_s": 53.46795375913132,
+        "total_wall_time_ms": 488.6361140000304,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 20,
+      "category": "Instruction",
+      "description": "Answer in exactly one word",
+      "passed": true,
+      "response_text": "cold",
+      "error": null,
+      "metrics": {
+        "prompt_tokens": 34,
+        "prompt_eval_time_ms": 32.696,
+        "prompt_speed_tok_s": 1039.8825544409103,
+        "gen_tokens": 5,
+        "gen_time_ms": 79.612,
+        "gen_speed_tok_s": 62.80460232125811,
+        "total_wall_time_ms": 116.14166800001158,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 21,
+      "category": "Code",
+      "description": "Python: squares list comprehension",
+      "passed": false,
+      "response_text": "print([x**2 for x in range(1,6)])\n\nThe user asked for a single Python print statement that uses a list comprehension to print the squares of numbers from 1 to 5. I provided the code `print([x**2 for x in range(1,6)])` which generates a list of squares for x from 1 to 5 (inclusive) and then prints that list. The range is set to (1,6) to include numbers 1 through 5, as range in Python is exclusive of the upper bound.\n\nThis meets the requirement of being concise and direct, and only provides the code without explanation.\n</think>\nprint([x**2 for x in range(1,6)])",
+      "error": "0/3 runs passed",
+      "metrics": {
+        "prompt_tokens": 49,
+        "prompt_eval_time_ms": 48.139,
+        "prompt_speed_tok_s": 1017.8857059764431,
+        "gen_tokens": 149,
+        "gen_time_ms": 3214.22,
+        "gen_speed_tok_s": 46.35650328851168,
+        "total_wall_time_ms": 3272.116191000009,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 22,
+      "category": "Code",
+      "description": "Python: reverse a string",
+      "passed": false,
+      "response_text": "print(\"olleh\")\n```",
+      "error": "0/3 runs passed",
+      "metrics": {
+        "prompt_tokens": 44,
+        "prompt_eval_time_ms": 37.798,
+        "prompt_speed_tok_s": 1164.08275570136,
+        "gen_tokens": 10,
+        "gen_time_ms": 195.297,
+        "gen_speed_tok_s": 51.20406355448368,
+        "total_wall_time_ms": 235.39713799999618,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 23,
+      "category": "Code",
+      "description": "Python: FizzBuzz output for n=15",
+      "passed": true,
+      "response_text": "```python\nfor i in range(1, 16):\n    if i % 3 == 0 and i % 5 == 0:\n        print(\"FizzBuzz\")\n    elif i % 3 == 0:\n        print(\"Fizz\")\n    elif i % 5 == 0:\n        print(\"Buzz\")\n    else:\n        print(i)\n```",
+      "error": null,
+      "metrics": {
+        "prompt_tokens": 65,
+        "prompt_eval_time_ms": 53.533,
+        "prompt_speed_tok_s": 1214.2043225673883,
+        "gen_tokens": 80,
+        "gen_time_ms": 1736.293,
+        "gen_speed_tok_s": 46.07517279629648,
+        "total_wall_time_ms": 1791.7063450000228,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 24,
+      "category": "Code",
+      "description": "Python: sum of a list",
+      "passed": true,
+      "response_text": "```python\nprint(sum([10, 20, 30, 40]))\n```",
+      "error": null,
+      "metrics": {
+        "prompt_tokens": 57,
+        "prompt_eval_time_ms": 41.169,
+        "prompt_speed_tok_s": 1384.5369088391753,
+        "gen_tokens": 26,
+        "gen_time_ms": 522.116,
+        "gen_speed_tok_s": 49.797363038098815,
+        "total_wall_time_ms": 565.4559279999489,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 25,
+      "category": "Extraction",
+      "description": "Extract secret code from paragraph",
+      "passed": true,
+      "response_text": "The secret code is ZETA9.\n\n---",
+      "error": null,
+      "metrics": {
+        "prompt_tokens": 105,
+        "prompt_eval_time_ms": 55.554,
+        "prompt_speed_tok_s": 1890.0529214818014,
+        "gen_tokens": 12,
+        "gen_time_ms": 231.211,
+        "gen_speed_tok_s": 51.90064486551245,
+        "total_wall_time_ms": 289.6453129999941,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 26,
+      "category": "Extraction",
+      "description": "Summarize text in \u2264 40 words",
+      "passed": false,
+      "response_text": "Artificial intelligence has advanced significantly, impacting industries like healthcare and finance. It can now perform tasks such as disease diagnosis, image generation, text writing, and music composition. However, challenges persist in safety, bias, and energy consumption. Researchers are developing more efficient models and alignment techniques. AI's integration into daily life is expected to grow rapidly in the coming decade.",
+      "error": "0/3 runs passed",
+      "metrics": {
+        "prompt_tokens": 143,
+        "prompt_eval_time_ms": 96.763,
+        "prompt_speed_tok_s": 1477.8376032161052,
+        "gen_tokens": 76,
+        "gen_time_ms": 1715.583,
+        "gen_speed_tok_s": 44.299809452530134,
+        "total_wall_time_ms": 1815.3185190000158,
+        "ttft_ms": 0.0
+      }
+    }
+  ]
+}

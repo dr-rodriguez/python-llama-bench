@@ -1,0 +1,478 @@
+{
+  "model": "llama3.3:8b",
+  "timestamp": "2026-06-10T20:32:16.648138",
+  "score": {
+    "passed": 23,
+    "total": 26
+  },
+  "results": [
+    {
+      "exercise_id": 1,
+      "category": "Math",
+      "description": "Single-digit addition (7 + 8)",
+      "passed": true,
+      "response_text": "15",
+      "error": null,
+      "metrics": {
+        "prompt_tokens": 35,
+        "prompt_eval_time_ms": 30.208,
+        "prompt_speed_tok_s": 1158.6334745762713,
+        "gen_tokens": 4,
+        "gen_time_ms": 58.992,
+        "gen_speed_tok_s": 67.80580417683754,
+        "total_wall_time_ms": 91.3774230011768,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 2,
+      "category": "Math",
+      "description": "Multi-step arithmetic ((12 * 4) - 17)",
+      "passed": true,
+      "response_text": "41 ### \n(12 * 4 = 48, 48 - 17 = 31) \n31  ### \n(12 * 4 = 48, 48 - 17 = 31) \n31  ### \n(12 * 4 = 48, 48 - 17 = 31) \n31  ### \n(12 * 4 = 48, 48 - 17 = 31) \n31  ### \n(12 * 4 = 48, 48 - 17 = 31) \n31  ### \n(12 * 4 = 48, 48 - 17 = 31) \n31  ### \n(12 * 4 = 48, 48 - 17 = 31) \n31  ### \n(12 * 4 = 48, 48 - 17 = 31) \n31  ### \n(12 * 4 = 48, 48 - 17 = 31) \n31  ### \n(12 * 4 = 48, 48 - 17 = 31) \n31  ### \n(12 * 4 = 48, 48 - 17 = 31) \n31  ### \n(12 * 4 = 48, 48 - 17 = 31) \n31  ### \n(12 * 4 = 48, 48 - 17 = 31) \n31",
+      "error": null,
+      "metrics": {
+        "prompt_tokens": 39,
+        "prompt_eval_time_ms": 32.09,
+        "prompt_speed_tok_s": 1215.3318790900591,
+        "gen_tokens": 300,
+        "gen_time_ms": 5861.694,
+        "gen_speed_tok_s": 51.17974428552564,
+        "total_wall_time_ms": 5904.358158000832,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 3,
+      "category": "Math",
+      "description": "Modulo (100 mod 7)",
+      "passed": false,
+      "response_text": "6",
+      "error": "0/3 runs passed",
+      "metrics": {
+        "prompt_tokens": 35,
+        "prompt_eval_time_ms": 31.223,
+        "prompt_speed_tok_s": 1120.968516798514,
+        "gen_tokens": 4,
+        "gen_time_ms": 61.031,
+        "gen_speed_tok_s": 65.5404630433714,
+        "total_wall_time_ms": 94.30644000167376,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 4,
+      "category": "Math",
+      "description": "Prime check (97)",
+      "passed": true,
+      "response_text": "yes.",
+      "error": null,
+      "metrics": {
+        "prompt_tokens": 38,
+        "prompt_eval_time_ms": 31.57,
+        "prompt_speed_tok_s": 1203.6743744060816,
+        "gen_tokens": 5,
+        "gen_time_ms": 80.365,
+        "gen_speed_tok_s": 62.21613886642196,
+        "total_wall_time_ms": 114.38337700019474,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 5,
+      "category": "Math",
+      "description": "10th Fibonacci number",
+      "passed": false,
+      "response_text": "34",
+      "error": "0/3 runs passed",
+      "metrics": {
+        "prompt_tokens": 51,
+        "prompt_eval_time_ms": 38.406,
+        "prompt_speed_tok_s": 1327.917512888611,
+        "gen_tokens": 4,
+        "gen_time_ms": 61.068,
+        "gen_speed_tok_s": 65.50075325866247,
+        "total_wall_time_ms": 101.75163800158771,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 6,
+      "category": "Math",
+      "description": "Roman numeral XLII to decimal",
+      "passed": true,
+      "response_text": "42",
+      "error": null,
+      "metrics": {
+        "prompt_tokens": 38,
+        "prompt_eval_time_ms": 31.182,
+        "prompt_speed_tok_s": 1218.6517862869605,
+        "gen_tokens": 4,
+        "gen_time_ms": 60.858,
+        "gen_speed_tok_s": 65.72677380130797,
+        "total_wall_time_ms": 94.49237099943275,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 7,
+      "category": "Factual",
+      "description": "Capital of Myanmar",
+      "passed": true,
+      "response_text": "Naypyidaw.",
+      "error": null,
+      "metrics": {
+        "prompt_tokens": 35,
+        "prompt_eval_time_ms": 31.617,
+        "prompt_speed_tok_s": 1106.9993990574692,
+        "gen_tokens": 9,
+        "gen_time_ms": 158.69,
+        "gen_speed_tok_s": 56.71434873022875,
+        "total_wall_time_ms": 193.27126300049713,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 8,
+      "category": "Factual",
+      "description": "Chemical symbol for tungsten",
+      "passed": true,
+      "response_text": "W",
+      "error": null,
+      "metrics": {
+        "prompt_tokens": 36,
+        "prompt_eval_time_ms": 31.038,
+        "prompt_speed_tok_s": 1159.8685482312003,
+        "gen_tokens": 4,
+        "gen_time_ms": 61.146,
+        "gen_speed_tok_s": 65.41719818140189,
+        "total_wall_time_ms": 94.49990299981437,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 9,
+      "category": "Factual",
+      "description": "Number of bones in the adult human body",
+      "passed": true,
+      "response_text": "206",
+      "error": null,
+      "metrics": {
+        "prompt_tokens": 37,
+        "prompt_eval_time_ms": 31.379,
+        "prompt_speed_tok_s": 1179.1325408712833,
+        "gen_tokens": 4,
+        "gen_time_ms": 60.851,
+        "gen_speed_tok_s": 65.73433468636506,
+        "total_wall_time_ms": 94.84911399886187,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 10,
+      "category": "Factual",
+      "description": "Year the Berlin Wall fell",
+      "passed": true,
+      "response_text": "1989",
+      "error": null,
+      "metrics": {
+        "prompt_tokens": 38,
+        "prompt_eval_time_ms": 31.775,
+        "prompt_speed_tok_s": 1195.9087332808813,
+        "gen_tokens": 5,
+        "gen_time_ms": 80.508,
+        "gen_speed_tok_s": 62.1056292542356,
+        "total_wall_time_ms": 115.52312999992864,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 11,
+      "category": "Factual",
+      "description": "Deepest ocean trench",
+      "passed": true,
+      "response_text": "Mariana Trench.",
+      "error": null,
+      "metrics": {
+        "prompt_tokens": 39,
+        "prompt_eval_time_ms": 31.702,
+        "prompt_speed_tok_s": 1230.206296132736,
+        "gen_tokens": 8,
+        "gen_time_ms": 138.786,
+        "gen_speed_tok_s": 57.64270171342931,
+        "total_wall_time_ms": 172.20290700061014,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 12,
+      "category": "Reasoning",
+      "description": "Odd one out (abstract: river among geometry)",
+      "passed": true,
+      "response_text": "river. ### \nNote: The other three words are all names of types of quadrilaterals, while \"river\" is not. ### \nNote: The other three words are all names of types of quadrilaterals, while \"river\" is not. ### \nNote: The other three words are all names of types of quadrilaterals, while \"river\" is not. ### \nNote: The other three words are all names of types of quadrilaterals, while \"river\" is not. ### \nNote: The other three words are all names of types of quadrilaterals, while \"river\" is not. ### \nNote: The other three words are all names of types of quadrilaterals, while \"river\" is not. ### \nNote: The other three words are all names of types of quadrilaterals, while \"river\" is not. ### \nNote: The other three words are all names of types of quadrilaterals, while \"river\" is not. ### \nNote: The other three words are all names of types of quadrilaterals, while \"river\" is not. ### \nNote: The other three words are all names of types of quadrilaterals, while \"river\" is not. ### \nNote: The other three words are all names of types of quadrilaterals, while \"river\" is not. ### \nNote: The other three words are all names of types of quadrilaterals, while \"river\" is not. ### \nNote: The other three words are all names of types of quadrilaterals, while \"river\" is not. ### \nNote: The other three words are all names of types of quadrilaterals, while \"river\" is not. ### \nNote: The other three words are all names of types of quadrilaterals, while \"river\" is not. ### \nNote: The other three words are all names of types of quadrilaterals, while \"river\" is not. ### \nNote: The other three words are all names of types of quadrilaterals, while \"river\" is not. ### \nNote: The other three words are all names of types of quadrilaterals, while \"river\" is not. ### \nNote: The other three words are all names of types of quadrilaterals, while \"river\" is not. ### \nNote: The other three words are all names of types of quadrilaterals, while \"river\" is not. ### \nNote: The other three words are all names of types of quadrilaterals, while \"river\" is not. ### \nNote: The other three words are all names of types of quadrilaterals, while \"river\" is not. ### \nNote: The other three words are all names of types of quadrilaterals, while \"river\" is not. ### \nNote: The other three words are all names of types of quadrilaterals, while \"river\" is not. ### \nNote: The other three words are all names of types of quadrilaterals, while \"river\" is not. ### \nNote: The other three words are all names of types of quadrilaterals, while \"river\" is not. ### \nNote: The other three words are all names of types of quadrilaterals, while \"river\" is not. ### \nNote: The other three words are all names of types of quadrilaterals, while \"river\" is not. ### \nNote: The other three words are all names of types of quadrilaterals, while \"river\" is not. ### \nNote: The other three words are all names of types of quadrilaterals, while \"river\" is not. ### \nNote: The other three words are all names of types of quadrilaterals, while \"river\" is not. ### \nNote: The other three words are all names of types of quadrilaterals, while \"river\" is not. ### \nNote: The other three words are all names of types of quadrilaterals, while \"river\" is not. ### \nNote: The other three words are all names of types of quadrilaterals, while \"river\" is not. ### \nNote: The other three words are all names of types of quadrilaterals, while \"river\" is not. ### \nNote: The other three words are all names of types of quadrilaterals, while \"river\" is not. ### \nNote: The other three words are all names of types of quadrilaterals, while \"river\" is not. ### \nNote: The other three words are all names of types of quadrilaterals, while \"river\" is not. ### \nNote: The other three words are all names of types of quadrilaterals, while \"river\" is not. ### \nNote: The other three words are all names of types of quadrilaterals, while \"river\" is not. ### \nNote: The other three words are all names of types of quadrilaterals, while \"river\"",
+      "error": null,
+      "metrics": {
+        "prompt_tokens": 51,
+        "prompt_eval_time_ms": 37.947,
+        "prompt_speed_tok_s": 1343.9797612459483,
+        "gen_tokens": 1024,
+        "gen_time_ms": 20733.59,
+        "gen_speed_tok_s": 49.388456123613906,
+        "total_wall_time_ms": 20776.00136500041,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 13,
+      "category": "Reasoning",
+      "description": "Letter sequence: O, T, T, F, F, S, S, ___",
+      "passed": true,
+      "response_text": "N. ### \n(No further explanation is needed.)  ### \n(No further response is required.)  ### \n(No additional text is necessary.)  ### \n(No more input is needed.)  ### \n(No further action is required.)  ### \n(No further response is necessary.)  ### \n(No additional explanation is required.)  ### \n(No more response is needed.)  ### \n(No further input is necessary.)  ### \n(No additional text is needed.)  ### \n(No further action is required.)  ### \n(No further response is necessary.)  ### \n(No more explanation is required.)  ### \n(No additional response is necessary.)  ### \n(No further input is needed.)  ### \n(No more text is necessary.)  ### \n(No further explanation is necessary.)  ### \n(No additional input is required.)  ### \n(No further text is needed.)  ### \n(No more response is necessary.)  ### \n(No further action is necessary.)  ### \n(No additional explanation is necessary.)  ### \n(No more input is required.)  ### \n(No further response is necessary.)  ### \n(No additional text is necessary.)  ### \n(No more explanation is necessary.)  ### \n(No further input is needed.)  ### \n(No additional response is necessary.)  ### \n(No further action is required.)  ### \n(No more text is necessary.)  ### \n(No further explanation is required.)  ### \n(No additional input is necessary.)  ### \n(No more response is necessary.)  ### \n(No further response is required.)  ### \n(No additional action is necessary.)  ### \n(No more input is necessary.)  ### \n(No further text is required.)  ### \n(No further explanation is necessary.)  ### \n(No additional response is necessary.)  ### \n(No more action is necessary.)  ### \n(No further input is required.)  ### \n(No additional explanation is necessary.)  ### \n(No more response is necessary.)  ### \n(No further text is necessary.)  ### \n(No additional response is necessary.)  ### \n(No more action is required.)  ### \n(No further explanation is necessary.)  ### \n(No additional input is necessary.)  ### \n(No more text is necessary.)  ### \n(No further response is necessary.)  ### \n(No additional action is required.)  ### \n(No more input is necessary.)  ### \n(No further explanation is necessary.)  ### \n(No more response is required.)  ### \n(No additional text is necessary.)  ### \n(No further action is necessary.)  ### \n(No more input is necessary.)  ### \n(No additional response is necessary.)  ### \n(No further explanation is necessary.)  ### \n(No more action is necessary.)  ### \n(No additional input is necessary.)  ### \n(No more text is necessary.)  ### \n(No further response is necessary.)  ### \n(No additional explanation is necessary.)  ### \n(No more action is necessary.)  ### \n(No further input is necessary.)  ### \n(No additional response is necessary.)  ### \n(No more explanation is necessary.)  ### \n(No further text is necessary.)  ### \n(No additional action is necessary.)  ### \n(No more input is necessary.)  ### \n(No further response is necessary.)  ### \n(No additional explanation is necessary.)  ### \n(No more action is necessary.)  ### \n(No further input is necessary.)  ### \n(No additional response is necessary.)  ### \n(No more text is necessary.)  ### \n(No further explanation is necessary.)  ### \n(No additional action is necessary.)  ### \n(No more input is necessary.)  ### \n(No further response is necessary.)  ### \n(No additional explanation is necessary.)  ### \n(No more action is necessary.)  ### \n(No further input is necessary.)  ### \n(No additional response is necessary.)  ### \n(No more text is necessary.)  ### \n(No further explanation is necessary.)  ### \n(No additional action is necessary.)  ### \n(No more input is necessary.)  ### \n(No further response is necessary.)  ### \n(No additional explanation is necessary.)  ### \n(No more action is necessary.)  ### \n(No further input is necessary.)  ### \n(No additional response is necessary.)  ### \n(No more text is necessary.)  ### \n(No further explanation is necessary.)  ### \n(No additional action is necessary.)  ### \n(No more input is necessary.)  ### \n(No further response is necessary.)  ### \n(No additional explanation is necessary.)  ### \n(No more action is necessary.)  ### \n(No further input is necessary.)  ###",
+      "error": null,
+      "metrics": {
+        "prompt_tokens": 60,
+        "prompt_eval_time_ms": 38.851,
+        "prompt_speed_tok_s": 1544.3617924892537,
+        "gen_tokens": 1024,
+        "gen_time_ms": 20847.669,
+        "gen_speed_tok_s": 49.11820117635214,
+        "total_wall_time_ms": 20909.783383000104,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 14,
+      "category": "Reasoning",
+      "description": "Next in sequence: 1, 1, 2, 3, 5, 8, 13, ___",
+      "passed": true,
+      "response_text": "21.",
+      "error": null,
+      "metrics": {
+        "prompt_tokens": 59,
+        "prompt_eval_time_ms": 38.719,
+        "prompt_speed_tok_s": 1523.7996849092178,
+        "gen_tokens": 5,
+        "gen_time_ms": 80.922,
+        "gen_speed_tok_s": 61.78789451570648,
+        "total_wall_time_ms": 121.55535199963197,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 15,
+      "category": "Reasoning",
+      "description": "Counterfactual: days in February in a leap year",
+      "passed": true,
+      "response_text": "29",
+      "error": null,
+      "metrics": {
+        "prompt_tokens": 46,
+        "prompt_eval_time_ms": 33.785,
+        "prompt_speed_tok_s": 1361.55098416457,
+        "gen_tokens": 4,
+        "gen_time_ms": 62.251,
+        "gen_speed_tok_s": 64.25599588761627,
+        "total_wall_time_ms": 98.24376699907589,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 16,
+      "category": "Reasoning",
+      "description": "Verbal reasoning: before yesterday's tomorrow",
+      "passed": true,
+      "response_text": "To solve this, let's break it down:\n1. \"Yesterday\" would be Tuesday.\n2. \"The day before yesterday\" would then be Monday.\n3. \"Tomorrow\" of Monday would be Tuesday.\n4. Therefore, \"the day before yesterday's tomorrow\" is Tuesday. \n\nTuesday.",
+      "error": null,
+      "metrics": {
+        "prompt_tokens": 50,
+        "prompt_eval_time_ms": 38.253,
+        "prompt_speed_tok_s": 1307.0870258541813,
+        "gen_tokens": 64,
+        "gen_time_ms": 1256.822,
+        "gen_speed_tok_s": 50.92208761463438,
+        "total_wall_time_ms": 1299.6202560007077,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 17,
+      "category": "Instruction",
+      "description": "List exactly 3 fruits, one per line",
+      "passed": true,
+      "response_text": "Apple\nBanana\nMango",
+      "error": null,
+      "metrics": {
+        "prompt_tokens": 45,
+        "prompt_eval_time_ms": 33.621,
+        "prompt_speed_tok_s": 1338.449183545998,
+        "gen_tokens": 10,
+        "gen_time_ms": 185.649,
+        "gen_speed_tok_s": 53.865089496846196,
+        "total_wall_time_ms": 219.92170299927238,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 18,
+      "category": "Instruction",
+      "description": "Respond with valid JSON {name, age}",
+      "passed": true,
+      "response_text": "{\"name\": \"John\", \"age\": 30}",
+      "error": null,
+      "metrics": {
+        "prompt_tokens": 54,
+        "prompt_eval_time_ms": 39.34,
+        "prompt_speed_tok_s": 1372.6487036095575,
+        "gen_tokens": 15,
+        "gen_time_ms": 290.687,
+        "gen_speed_tok_s": 51.601894821577844,
+        "total_wall_time_ms": 331.8126479989587,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 19,
+      "category": "Instruction",
+      "description": "Describe a cat without using the word 'cat'",
+      "passed": true,
+      "response_text": "A popular household pet known for its distinctive meowing sounds and soothing purring is often kept as a companion and friend in many homes.",
+      "error": null,
+      "metrics": {
+        "prompt_tokens": 49,
+        "prompt_eval_time_ms": 39.129,
+        "prompt_speed_tok_s": 1252.2681387206421,
+        "gen_tokens": 30,
+        "gen_time_ms": 598.644,
+        "gen_speed_tok_s": 50.113255958466134,
+        "total_wall_time_ms": 640.4671419986698,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 20,
+      "category": "Instruction",
+      "description": "Answer in exactly one word",
+      "passed": false,
+      "response_text": "Cold.",
+      "error": "0/3 runs passed",
+      "metrics": {
+        "prompt_tokens": 35,
+        "prompt_eval_time_ms": 32.255,
+        "prompt_speed_tok_s": 1085.1030847930554,
+        "gen_tokens": 5,
+        "gen_time_ms": 85.109,
+        "gen_speed_tok_s": 58.748193493050096,
+        "total_wall_time_ms": 119.62251600016316,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 21,
+      "category": "Code",
+      "description": "Python: squares list comprehension",
+      "passed": true,
+      "response_text": "```python\nprint([x**2 for x in range(1, 6)])\n``` ###",
+      "error": null,
+      "metrics": {
+        "prompt_tokens": 50,
+        "prompt_eval_time_ms": 39.261,
+        "prompt_speed_tok_s": 1273.528437890018,
+        "gen_tokens": 24,
+        "gen_time_ms": 474.919,
+        "gen_speed_tok_s": 50.53493332547235,
+        "total_wall_time_ms": 517.7954530008719,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 22,
+      "category": "Code",
+      "description": "Python: reverse a string",
+      "passed": true,
+      "response_text": "```python\nprint(\"hello\"[::-1])\n``` ###",
+      "error": null,
+      "metrics": {
+        "prompt_tokens": 45,
+        "prompt_eval_time_ms": 33.97,
+        "prompt_speed_tok_s": 1324.6982631733883,
+        "gen_tokens": 16,
+        "gen_time_ms": 310.542,
+        "gen_speed_tok_s": 51.5228213896993,
+        "total_wall_time_ms": 347.5129760008713,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 23,
+      "category": "Code",
+      "description": "Python: FizzBuzz output for n=15",
+      "passed": true,
+      "response_text": "```python\nfor i in range(1, 16):\n    if i % 3 == 0 and i % 5 == 0:\n        print(\"FizzBuzz\")\n    elif i % 3 == 0:\n        print(\"Fizz\")\n    elif i % 5 == 0:\n        print(\"Buzz\")\n    else:\n        print(i)\n```",
+      "error": null,
+      "metrics": {
+        "prompt_tokens": 65,
+        "prompt_eval_time_ms": 40.375,
+        "prompt_speed_tok_s": 1609.9071207430343,
+        "gen_tokens": 78,
+        "gen_time_ms": 1467.452,
+        "gen_speed_tok_s": 53.15335697521964,
+        "total_wall_time_ms": 1510.3400070001953,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 24,
+      "category": "Code",
+      "description": "Python: sum of a list",
+      "passed": true,
+      "response_text": "```python\nprint(sum([10, 20, 30, 40]))\n``` ###",
+      "error": null,
+      "metrics": {
+        "prompt_tokens": 54,
+        "prompt_eval_time_ms": 36.009,
+        "prompt_speed_tok_s": 1499.6250937265684,
+        "gen_tokens": 23,
+        "gen_time_ms": 419.183,
+        "gen_speed_tok_s": 54.86863732546406,
+        "total_wall_time_ms": 456.9765489995916,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 25,
+      "category": "Extraction",
+      "description": "Extract secret code from paragraph",
+      "passed": true,
+      "response_text": "ZETA9 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###",
+      "error": null,
+      "metrics": {
+        "prompt_tokens": 106,
+        "prompt_eval_time_ms": 50.437,
+        "prompt_speed_tok_s": 2101.631738604596,
+        "gen_tokens": 300,
+        "gen_time_ms": 5879.034,
+        "gen_speed_tok_s": 51.02879146472022,
+        "total_wall_time_ms": 5940.096935999463,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 26,
+      "category": "Extraction",
+      "description": "Summarize text in \u2264 40 words",
+      "passed": true,
+      "response_text": "Artificial intelligence has made significant progress, transforming industries, but faces challenges around safety, bias, and energy costs, with ongoing research to improve efficiency and alignment.",
+      "error": null,
+      "metrics": {
+        "prompt_tokens": 143,
+        "prompt_eval_time_ms": 77.245,
+        "prompt_speed_tok_s": 1851.2525082529612,
+        "gen_tokens": 35,
+        "gen_time_ms": 682.933,
+        "gen_speed_tok_s": 51.24953692382708,
+        "total_wall_time_ms": 761.6379959999904,
+        "ttft_ms": 0.0
+      }
+    }
+  ]
+}

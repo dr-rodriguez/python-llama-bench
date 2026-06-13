@@ -1,0 +1,478 @@
+{
+  "model": "gemma4:12b-q3",
+  "timestamp": "2026-06-10T21:00:10.510709",
+  "score": {
+    "passed": 22,
+    "total": 26
+  },
+  "results": [
+    {
+      "exercise_id": 1,
+      "category": "Math",
+      "description": "Single-digit addition (7 + 8)",
+      "passed": true,
+      "response_text": "<|channel>thought\n<channel|>15",
+      "error": null,
+      "metrics": {
+        "prompt_tokens": 40,
+        "prompt_eval_time_ms": 93.075,
+        "prompt_speed_tok_s": 429.76094547408,
+        "gen_tokens": 7,
+        "gen_time_ms": 186.394,
+        "gen_speed_tok_s": 37.554856915995146,
+        "total_wall_time_ms": 285.6385519989999,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 2,
+      "category": "Math",
+      "description": "Multi-step arithmetic ((12 * 4) - 17)",
+      "passed": true,
+      "response_text": "<|channel>thought\n<channel|>31",
+      "error": null,
+      "metrics": {
+        "prompt_tokens": 46,
+        "prompt_eval_time_ms": 93.451,
+        "prompt_speed_tok_s": 492.23657317738713,
+        "gen_tokens": 7,
+        "gen_time_ms": 188.095,
+        "gen_speed_tok_s": 37.215236981312636,
+        "total_wall_time_ms": 282.5311589986086,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 3,
+      "category": "Math",
+      "description": "Modulo (100 mod 7)",
+      "passed": true,
+      "response_text": "<|channel>thought\n<channel|>2",
+      "error": null,
+      "metrics": {
+        "prompt_tokens": 42,
+        "prompt_eval_time_ms": 95.105,
+        "prompt_speed_tok_s": 441.6171599810735,
+        "gen_tokens": 6,
+        "gen_time_ms": 156.053,
+        "gen_speed_tok_s": 38.448475838336975,
+        "total_wall_time_ms": 253.1685199992353,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 4,
+      "category": "Math",
+      "description": "Prime check (97)",
+      "passed": false,
+      "response_text": "<|channel>thought\n<channel|>no",
+      "error": "0/3 runs passed",
+      "metrics": {
+        "prompt_tokens": 44,
+        "prompt_eval_time_ms": 92.476,
+        "prompt_speed_tok_s": 475.79912625978636,
+        "gen_tokens": 6,
+        "gen_time_ms": 157.8,
+        "gen_speed_tok_s": 38.02281368821292,
+        "total_wall_time_ms": 256.44929700138164,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 5,
+      "category": "Math",
+      "description": "10th Fibonacci number",
+      "passed": true,
+      "response_text": "<|channel>thought\n<channel|>55",
+      "error": null,
+      "metrics": {
+        "prompt_tokens": 57,
+        "prompt_eval_time_ms": 103.319,
+        "prompt_speed_tok_s": 551.6894278883846,
+        "gen_tokens": 7,
+        "gen_time_ms": 191.292,
+        "gen_speed_tok_s": 36.59327102022039,
+        "total_wall_time_ms": 301.1902200014447,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 6,
+      "category": "Math",
+      "description": "Roman numeral XLII to decimal",
+      "passed": true,
+      "response_text": "<|channel>thought\n<channel|>42",
+      "error": null,
+      "metrics": {
+        "prompt_tokens": 43,
+        "prompt_eval_time_ms": 95.126,
+        "prompt_speed_tok_s": 452.0320417130963,
+        "gen_tokens": 7,
+        "gen_time_ms": 191.2,
+        "gen_speed_tok_s": 36.61087866108787,
+        "total_wall_time_ms": 287.5839759999508,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 7,
+      "category": "Factual",
+      "description": "Capital of Myanmar",
+      "passed": true,
+      "response_text": "<|channel>thought\n<channel|>Naypyidaw",
+      "error": null,
+      "metrics": {
+        "prompt_tokens": 40,
+        "prompt_eval_time_ms": 94.206,
+        "prompt_speed_tok_s": 424.60140543065194,
+        "gen_tokens": 9,
+        "gen_time_ms": 249.957,
+        "gen_speed_tok_s": 36.00619306520721,
+        "total_wall_time_ms": 347.32374499981233,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 8,
+      "category": "Factual",
+      "description": "Chemical symbol for tungsten",
+      "passed": true,
+      "response_text": "<|channel>thought\n<channel|>W",
+      "error": null,
+      "metrics": {
+        "prompt_tokens": 40,
+        "prompt_eval_time_ms": 93.302,
+        "prompt_speed_tok_s": 428.7153544404192,
+        "gen_tokens": 6,
+        "gen_time_ms": 159.286,
+        "gen_speed_tok_s": 37.668093868889926,
+        "total_wall_time_ms": 255.35171999945305,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 9,
+      "category": "Factual",
+      "description": "Number of bones in the adult human body",
+      "passed": true,
+      "response_text": "<|channel>thought\n<channel|>206",
+      "error": null,
+      "metrics": {
+        "prompt_tokens": 42,
+        "prompt_eval_time_ms": 94.54,
+        "prompt_speed_tok_s": 444.25639940765814,
+        "gen_tokens": 8,
+        "gen_time_ms": 219.584,
+        "gen_speed_tok_s": 36.43252696006995,
+        "total_wall_time_ms": 316.72803099900193,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 10,
+      "category": "Factual",
+      "description": "Year the Berlin Wall fell",
+      "passed": true,
+      "response_text": "<|channel>thought\n<channel|>1989",
+      "error": null,
+      "metrics": {
+        "prompt_tokens": 44,
+        "prompt_eval_time_ms": 94.662,
+        "prompt_speed_tok_s": 464.8116456445035,
+        "gen_tokens": 9,
+        "gen_time_ms": 252.459,
+        "gen_speed_tok_s": 35.6493529642437,
+        "total_wall_time_ms": 350.34358899974904,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 11,
+      "category": "Factual",
+      "description": "Deepest ocean trench",
+      "passed": true,
+      "response_text": "<|channel>thought\n<channel|><|channel>thought\n<channel|>Mariana Trench",
+      "error": null,
+      "metrics": {
+        "prompt_tokens": 44,
+        "prompt_eval_time_ms": 94.873,
+        "prompt_speed_tok_s": 463.7778925510946,
+        "gen_tokens": 12,
+        "gen_time_ms": 343.139,
+        "gen_speed_tok_s": 34.97125071763921,
+        "total_wall_time_ms": 443.35461399896303,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 12,
+      "category": "Reasoning",
+      "description": "Odd one out (abstract: river among geometry)",
+      "passed": true,
+      "response_text": "<|channel>thought\n<channel|>river",
+      "error": null,
+      "metrics": {
+        "prompt_tokens": 50,
+        "prompt_eval_time_ms": 95.8,
+        "prompt_speed_tok_s": 521.9206680584551,
+        "gen_tokens": 6,
+        "gen_time_ms": 157.312,
+        "gen_speed_tok_s": 38.14076484947111,
+        "total_wall_time_ms": 258.28998500037414,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 13,
+      "category": "Reasoning",
+      "description": "Letter sequence: O, T, T, F, F, S, S, ___",
+      "passed": true,
+      "response_text": "<|channel>thought\n<channel|>E",
+      "error": null,
+      "metrics": {
+        "prompt_tokens": 65,
+        "prompt_eval_time_ms": 107.737,
+        "prompt_speed_tok_s": 603.3210503355393,
+        "gen_tokens": 6,
+        "gen_time_ms": 156.937,
+        "gen_speed_tok_s": 38.23190197340334,
+        "total_wall_time_ms": 268.84967099977075,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 14,
+      "category": "Reasoning",
+      "description": "Next in sequence: 1, 1, 2, 3, 5, 8, 13, ___",
+      "passed": true,
+      "response_text": "<|channel>thought\n<channel|>21",
+      "error": null,
+      "metrics": {
+        "prompt_tokens": 65,
+        "prompt_eval_time_ms": 108.918,
+        "prompt_speed_tok_s": 596.7792284103637,
+        "gen_tokens": 7,
+        "gen_time_ms": 189.811,
+        "gen_speed_tok_s": 36.878789954217616,
+        "total_wall_time_ms": 300.89128199870174,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 15,
+      "category": "Reasoning",
+      "description": "Counterfactual: days in February in a leap year",
+      "passed": true,
+      "response_text": "<|channel>thought\n<|channel>thought\n<channel|>29",
+      "error": null,
+      "metrics": {
+        "prompt_tokens": 53,
+        "prompt_eval_time_ms": 102.493,
+        "prompt_speed_tok_s": 517.1084854575435,
+        "gen_tokens": 10,
+        "gen_time_ms": 281.369,
+        "gen_speed_tok_s": 35.540517967508855,
+        "total_wall_time_ms": 388.7364920010441,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 16,
+      "category": "Reasoning",
+      "description": "Verbal reasoning: before yesterday's tomorrow",
+      "passed": true,
+      "response_text": "<|channel>thought\n<channel|>1. Today is Wednesday.\n2. Yesterday was Tuesday.\n3. The day before yesterday was Monday.\n4. The tomorrow of that day (Monday) is Tuesday.\n\nTuesday",
+      "error": null,
+      "metrics": {
+        "prompt_tokens": 56,
+        "prompt_eval_time_ms": 111.209,
+        "prompt_speed_tok_s": 503.5563668408132,
+        "gen_tokens": 44,
+        "gen_time_ms": 1402.43,
+        "gen_speed_tok_s": 31.37411492908737,
+        "total_wall_time_ms": 1516.4308650000748,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 17,
+      "category": "Instruction",
+      "description": "List exactly 3 fruits, one per line",
+      "passed": false,
+      "response_text": "<|channel>thought\n<channel|>Apple\nBanana\nOrange",
+      "error": "0/3 runs passed",
+      "metrics": {
+        "prompt_tokens": 50,
+        "prompt_eval_time_ms": 99.999,
+        "prompt_speed_tok_s": 500.00500005000055,
+        "gen_tokens": 10,
+        "gen_time_ms": 280.71,
+        "gen_speed_tok_s": 35.62395354636458,
+        "total_wall_time_ms": 384.04063199959637,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 18,
+      "category": "Instruction",
+      "description": "Respond with valid JSON {name, age}",
+      "passed": true,
+      "response_text": "<|channel>thought\n<channel|>```json\n{\n  \"name\": \"John Doe\",\n  \"age\": 30\n}\n```",
+      "error": null,
+      "metrics": {
+        "prompt_tokens": 59,
+        "prompt_eval_time_ms": 107.18,
+        "prompt_speed_tok_s": 550.4758350438514,
+        "gen_tokens": 30,
+        "gen_time_ms": 914.325,
+        "gen_speed_tok_s": 32.81109014847018,
+        "total_wall_time_ms": 1026.8931910013634,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 19,
+      "category": "Instruction",
+      "description": "Describe a cat without using the word 'cat'",
+      "passed": true,
+      "response_text": "<|channel>thought\n<channel|>A domestic feline is a common household pet that meows and purrs.",
+      "error": null,
+      "metrics": {
+        "prompt_tokens": 54,
+        "prompt_eval_time_ms": 104.716,
+        "prompt_speed_tok_s": 515.680507276825,
+        "gen_tokens": 20,
+        "gen_time_ms": 594.078,
+        "gen_speed_tok_s": 33.665612932981865,
+        "total_wall_time_ms": 704.7484459999396,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 20,
+      "category": "Instruction",
+      "description": "Answer in exactly one word",
+      "passed": false,
+      "response_text": "<|channel>thought\n<channel|>Cold",
+      "error": "0/3 runs passed",
+      "metrics": {
+        "prompt_tokens": 40,
+        "prompt_eval_time_ms": 108.86,
+        "prompt_speed_tok_s": 367.4444240308653,
+        "gen_tokens": 6,
+        "gen_time_ms": 185.595,
+        "gen_speed_tok_s": 32.32845712438374,
+        "total_wall_time_ms": 296.4339979989745,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 21,
+      "category": "Code",
+      "description": "Python: squares list comprehension",
+      "passed": true,
+      "response_text": "<|channel>thought\n<channel|>```python\nprint([x**2 for x in range(1, 6)])\n```",
+      "error": null,
+      "metrics": {
+        "prompt_tokens": 55,
+        "prompt_eval_time_ms": 107.154,
+        "prompt_speed_tok_s": 513.2799522183027,
+        "gen_tokens": 25,
+        "gen_time_ms": 752.353,
+        "gen_speed_tok_s": 33.22908262477853,
+        "total_wall_time_ms": 858.5291790004703,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 22,
+      "category": "Code",
+      "description": "Python: reverse a string",
+      "passed": true,
+      "response_text": "<|channel>thought\n<channel|>```python\nprint(\"hello\"[::-1])\n```",
+      "error": null,
+      "metrics": {
+        "prompt_tokens": 50,
+        "prompt_eval_time_ms": 94.984,
+        "prompt_speed_tok_s": 526.4044470647688,
+        "gen_tokens": 17,
+        "gen_time_ms": 497.78,
+        "gen_speed_tok_s": 34.15163325163727,
+        "total_wall_time_ms": 594.9780789997021,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 23,
+      "category": "Code",
+      "description": "Python: FizzBuzz output for n=15",
+      "passed": true,
+      "response_text": "<|channel>thought\n<channel|>```python\nfor i in range(1, 16):\n    if i % 3 == 0 and i % 5 == 0:\n        print(\"FizzBuzz\")\n    elif i % 3 == 0:\n        print(\"Fizz\")\n    elif i % 5 == 0:\n        print(\"Buzz\")\n    else:\n        print(i)\n```",
+      "error": null,
+      "metrics": {
+        "prompt_tokens": 68,
+        "prompt_eval_time_ms": 107.706,
+        "prompt_speed_tok_s": 631.348300001857,
+        "gen_tokens": 91,
+        "gen_time_ms": 2801.905,
+        "gen_speed_tok_s": 32.47790342641881,
+        "total_wall_time_ms": 2920.5246000001353,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 24,
+      "category": "Code",
+      "description": "Python: sum of a list",
+      "passed": true,
+      "response_text": "<|channel>thought\n<channel|>```python\nprint(sum([10, 20, 30, 40]))\n```",
+      "error": null,
+      "metrics": {
+        "prompt_tokens": 63,
+        "prompt_eval_time_ms": 104.139,
+        "prompt_speed_tok_s": 604.9606775559589,
+        "gen_tokens": 29,
+        "gen_time_ms": 873.572,
+        "gen_speed_tok_s": 33.197034703493244,
+        "total_wall_time_ms": 980.7993249996798,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 25,
+      "category": "Extraction",
+      "description": "Extract secret code from paragraph",
+      "passed": true,
+      "response_text": "<|channel>thought\n<channel|><|channel>thought\n<channel|>ZETA9",
+      "error": null,
+      "metrics": {
+        "prompt_tokens": 111,
+        "prompt_eval_time_ms": 136.2,
+        "prompt_speed_tok_s": 814.977973568282,
+        "gen_tokens": 12,
+        "gen_time_ms": 342.595,
+        "gen_speed_tok_s": 35.02678089289102,
+        "total_wall_time_ms": 486.0102889997506,
+        "ttft_ms": 0.0
+      }
+    },
+    {
+      "exercise_id": 26,
+      "category": "Extraction",
+      "description": "Summarize text in \u2264 40 words",
+      "passed": false,
+      "response_text": "<|channel>thought<|channel>thought\n<channel|>AI has transformed various industries through machine learning, enabling tasks like diagnosis and content creation. Despite progress, challenges regarding safety, bias, and energy costs persist. Researchers are focusing on efficiency and alignment as AI becomes more integrated into daily life.",
+      "error": "0/3 runs passed",
+      "metrics": {
+        "prompt_tokens": 148,
+        "prompt_eval_time_ms": 179.337,
+        "prompt_speed_tok_s": 825.2619370235925,
+        "gen_tokens": 54,
+        "gen_time_ms": 1658.041,
+        "gen_speed_tok_s": 32.56855530110534,
+        "total_wall_time_ms": 1844.0185789986572,
+        "ttft_ms": 0.0
+      }
+    }
+  ]
+}

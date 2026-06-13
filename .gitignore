@@ -15,4 +15,4 @@ wheels/
 uv.lock
 
 data*/
-*.html
+local_run.md
