@@ -423,7 +423,7 @@ def render_html(models: list[dict], aggs: list[dict]) -> str:
         if cat != prev_cat:
             rows.append(
                 f'<tr class="cat-row"><td colspan="{3+n}" style="color:{CAT_COLORS.get(cat,"#aaa")}">'
-                f'▸ {cat}</td></tr>'
+                f'<span class="cat-label">▸ {cat}</span></td></tr>'
             )
             prev_cat = cat
 
@@ -728,13 +728,16 @@ def render_html(models: list[dict], aggs: list[dict]) -> str:
   }}
   /* Sticky headers — only works when table is not inside overflow:auto wrapper.
      We give each table its own scrollable wrapper so sticky can work. */
+  /* Headers stick to the top of their scroll-container wrapper (top:0,
+     not 72px — these wrappers are scroll containers, so the offset is
+     relative to the wrapper, not the page). */
   .results-table th {{
     position: sticky;
-    top: 72px;
+    top: 0;
   }}
   .cat-table th {{
     position: sticky;
-    top: 72px;
+    top: 0;
   }}
   .speed-table thead tr:first-child th {{
     position: sticky;
@@ -783,6 +786,50 @@ def render_html(models: list[dict], aggs: list[dict]) -> str:
     color: var(--muted);
   }}
   .model-col {{ min-width: 180px; }}
+
+  /* ── Horizontally scrollable tables with pinned left column(s) ──
+     overflow-x:auto makes the wrapper a scroll container so wide tables
+     (many models) can scroll left/right. The left column(s) stay pinned
+     via position:sticky; left. */
+  .scroll-x {{ overflow-x: auto; }}
+
+  /* Accuracy by Category — pin the Category column */
+  .cat-table th:first-child,
+  .cat-table td:first-child {{
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    background: var(--surface);
+  }}
+  .cat-table thead th:first-child {{ z-index: 3; }}
+
+  /* Exercise Detail — pin the # and Exercise columns */
+  .results-table th:nth-child(1),
+  .results-table td.ex-id {{
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    width: 44px;
+    min-width: 44px;
+    background: var(--bg);
+  }}
+  .results-table th:nth-child(2),
+  .results-table td.ex-desc {{
+    position: sticky;
+    left: 44px;
+    z-index: 1;
+    min-width: 200px;
+    background: var(--bg);
+  }}
+  .results-table thead th:nth-child(1),
+  .results-table thead th:nth-child(2) {{ z-index: 3; background: var(--surface); }}
+  /* Category separator row — sticky on a colspan <td> is unreliable, so
+     pin an inner inline-block span to the wrapper's left edge instead. */
+  .results-table .cat-label {{
+    position: sticky;
+    left: 12px;
+    display: inline-block;
+  }}
 
   /* Category accuracy table */
   .cat-table td, .cat-table th {{ padding: 10px 16px; }}
@@ -868,7 +915,7 @@ def render_html(models: list[dict], aggs: list[dict]) -> str:
 
   <section id="accuracy">
     <h2><span>02</span>Accuracy by Category</h2>
-    <div class="table-wrap">{cat_table_html}</div>
+    <div class="table-wrap scroll-x">{cat_table_html}</div>
   </section>
 
   <section id="speed">
@@ -889,7 +936,7 @@ def render_html(models: list[dict], aggs: list[dict]) -> str:
 
   <section id="exercises">
     <h2><span>04</span>Exercise Detail</h2>
-    <div class="table-wrap">{table_html}</div>
+    <div class="table-wrap scroll-x">{table_html}</div>
   </section>
 
 </main>

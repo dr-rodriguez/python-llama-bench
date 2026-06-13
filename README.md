@@ -44,6 +44,11 @@ python llama_bench.py --model qwen3.5:9b --output data/qwen3.5-9b.json --repeat 
 python llama_bench.py --model qwen3:8b --output data/qwen3-8b.json --repeat 3
 python llama_bench.py --model llama3.3:8b --output data/llama3.3-8b.json --repeat 3
 python llama_bench.py --model gemma4:26b-moe --output data/gemma4-26b-moe.json --repeat 3
+python llama_bench.py --model deepseek-r1:8b --output data/deepseek-r1-8b.json --repeat 3
+python llama_bench.py --model glm4.6v:flash --output data/glm4.6v-flash.json --repeat 3
+python llama_bench.py --model ministral3:8b --output data/ministral3-8b.json --repeat 3
+python llama_bench.py --model phi4-mini:reasoning --output data/phi4-mini-reasoning.json --repeat 3
+
 
 # With a different version of llama.cpp (see https://github.com/PrismML-Eng/Bonsai-demo/):
 python llama_bench.py --model bonsai:8b --output data/bonsai-8b.json --repeat 3
