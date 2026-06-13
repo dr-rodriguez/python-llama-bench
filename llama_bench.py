@@ -8,6 +8,7 @@ across 25 exercises with verifiable results.
 import argparse
 import json
 import re
+import socket
 import subprocess
 import sys
 import tempfile
@@ -1064,6 +1065,45 @@ def save_results(results: list[BenchmarkResult], path: str, model_name: str):
 
 
 # ---------------------------------------------------------------------------
+# WSL2 networking helpers
+# ---------------------------------------------------------------------------
+# A llama.cpp server bound to 0.0.0.0 on the *Windows* host is not reachable
+# from inside WSL2 via localhost/127.0.0.1 — those resolve to the WSL VM, not
+# the host. The Windows host is reachable at the default-route gateway IP.
+
+def _is_wsl() -> bool:
+    try:
+        with open("/proc/version") as f:
+            return "microsoft" in f.read().lower()
+    except OSError:
+        return False
+
+
+def _wsl_windows_host() -> Optional[str]:
+    """Windows host IP as seen from WSL2 (the default-route gateway)."""
+    if not _is_wsl():
+        return None
+    try:
+        out = subprocess.run(
+            ["ip", "route", "show", "default"],
+            capture_output=True, text=True, timeout=3,
+        ).stdout
+        m = re.search(r"via (\d+\.\d+\.\d+\.\d+)", out)
+        return m.group(1) if m else None
+    except Exception:
+        return None
+
+
+def _port_open(host: str, port: int, timeout: float = 2.0) -> bool:
+    """True if a TCP connection to host:port succeeds."""
+    try:
+        with socket.create_connection((host, port), timeout=timeout):
+            return True
+    except OSError:
+        return False
+
+
+# ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
 
@@ -1128,7 +1168,31 @@ def main():
         return
 
     console.print("[dim]Probing server — detecting endpoint...[/dim]")
-    if not client.probe():
+    ok = client.probe()
+    if not ok:
+        # WSL2: localhost won't reach a server bound on the Windows host. If the
+        # given host isn't even accepting TCP connections but the Windows gateway
+        # is, retry there before giving up.
+        win_host = _wsl_windows_host()
+        if (win_host and win_host != args.host
+                and args.host in ("localhost", "127.0.0.1")
+                and not _port_open(args.host, args.port)
+                and _port_open(win_host, args.port)):
+            console.print(
+                f"[yellow]  {args.host}:{args.port} unreachable — detected WSL2; "
+                f"retrying on Windows host [cyan]{win_host}[/cyan][/yellow]"
+            )
+            args.host = win_host
+            client = LlamaCppClient(
+                host=args.host,
+                port=args.port,
+                model=args.model,
+                diagnose=args.diagnose,
+                ollama=args.ollama,
+            )
+            ok = client.probe()
+
+    if not ok:
         available = client.list_models()
         hint = ""
         if available:

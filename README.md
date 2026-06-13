@@ -2,7 +2,7 @@
 
 A python script to help benchmark local AI models.
 
-Coded with assistance from Claude (Sonnet 4.6, Opus 4.6).
+Coded with assistance from Claude (Sonnet 4.6, Opus 4.6 and 4.8).
 
 ## Initial prompt:
 > Generate a plan for a python script that will help benchmark local AI models running llama.cpp. I'll be running the server and want to capture things like prompt-processing and token generation speeds, as well as total execution time. I want the script to have a series of exercises, at least 20, that it runs through with verifiable results so it can output success metrics, like 14/20 pass or something like that.
@@ -36,22 +36,24 @@ the port to `11434`. Without it, the llama.cpp endpoints are used.
 ### Get full error message
 `python llama_bench.py --diagnose`
 
-## Executions
+## My tests
 ```
+# Windows Tests
 python llama_bench.py --model gemma4:12b-q3 --output data/gemma4-12b-q3.json --repeat 3
 python llama_bench.py --model qwen3.5:9b --output data/qwen3.5-9b.json --repeat 3
 python llama_bench.py --model qwen3:8b --output data/qwen3-8b.json --repeat 3
 python llama_bench.py --model llama3.3:8b --output data/llama3.3-8b.json --repeat 3
 python llama_bench.py --model gemma4:26b-moe --output data/gemma4-26b-moe.json --repeat 3
 
-# With a different version of llama.cpp (not working at the moment):
+# With a different version of llama.cpp (see https://github.com/PrismML-Eng/Bonsai-demo/):
 python llama_bench.py --model bonsai:8b --output data/bonsai-8b.json --repeat 3
 
-python bench_report.py
-
-# Mac tests
+# Mac Tests
 python llama_bench.py --ollama --model gemma4:12b-mlx --output data/gemma4-12b-mlx.json --repeat 3
 python llama_bench.py --ollama --model qwen3.6:27b-coding-nvfp4 --output data/qwen3.6-27b-coding-nvfp4.json --repeat 3
 python llama_bench.py --ollama --model gemma4:26b-nvfp4 --output data/gemma4-26b-nvfp4.json --repeat 3
 python llama_bench.py --ollama --model qwen3.6:35b-a3b-nvfp4 --output data/qwen3.6-35b-a3b-nvfp4.json --repeat 3
+
+# Report generation
+python bench_report.py
 ```
