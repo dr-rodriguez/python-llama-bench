@@ -87,6 +87,10 @@ and comparative speed charts by category:
 
 ![Token generation and prompt processing speed charts](images/benchmark-speeds.png)
 
+and comparative accuracy charts by category:
+
+![Accuracy charts](images/benchmark-accuracy.png)
+
 ## My Results
 
 The [`results/`](results/) folder holds the JSON output from my own runs. 
@@ -102,6 +106,10 @@ python llama_bench.py --model glm4.6v:flash --output data/glm4.6v-flash.json --r
 python llama_bench.py --model ministral3:8b --output data/ministral3-8b.json --repeat 3
 python llama_bench.py --model phi4-mini:reasoning --output data/phi4-mini-reasoning.json --repeat 3
 python llama_bench.py --model phi4:14b-reasoning-q3 --output data/phi4-14b-reasoning-q3.json --repeat 3
+python llama_bench.py --model gpt-oss:20b --output data/gpt-oss-20b.json --repeat 3
+python llama_bench.py --model gpt-oss:20b-moe --output data/gpt-oss-20b-moe.json --repeat 3
+python llama_bench.py --model qwen3:14b-q2 --output data/qwen3-14b-q2.json --repeat 3
+python llama_bench.py --model qwen3:14b-q4 --output data/qwen3-14b-q4.json --repeat 3
 
 # With a different version of llama.cpp (see https://github.com/PrismML-Eng/Bonsai-demo/):
 python llama_bench.py --model bonsai:8b --output data/bonsai-8b.json --repeat 3

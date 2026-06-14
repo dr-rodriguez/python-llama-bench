@@ -146,6 +146,23 @@ def bar_chart(
         "#a78bfa",  # violet
         "#4ade80",  # green
         "#f87171",  # coral red
+        "#22d3ee",  # cyan
+        "#fbbf24",  # gold
+        "#e879f9",  # fuchsia
+        "#2dd4bf",  # turquoise
+        "#fda4af",  # rose
+        "#93c5fd",  # light blue
+        "#fdba74",  # light orange
+        "#c4b5fd",  # light violet
+        "#86efac",  # light green
+        "#fca5a5",  # salmon
+        "#67e8f9",  # light cyan
+        "#facc15",  # yellow
+        "#d8b4fe",  # lavender
+        "#5eead4",  # aqua
+        "#f9a8d4",  # light pink
+        "#a3e635",  # lime
+        "#38bdf8",  # bright sky
     ]
 
     # Estimate legend layout: each item is swatch(10) + gap(4) + ~8px/char text
