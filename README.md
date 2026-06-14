@@ -81,15 +81,15 @@ python bench_report.py
 
 This writes `bench_report.html` with per-model summary cards:
 
-![Model summary cards](images/benchmark-summary.png)
+![Model summary cards](images/benchmark_summary.png)
 
 and comparative speed charts by category:
 
-![Token generation and prompt processing speed charts](images/benchmark-speeds.png)
+![Token generation and prompt processing speed charts](images/benchmark_speed.png)
 
 and comparative accuracy charts by category:
 
-![Accuracy charts](images/benchmark-accuracy.png)
+![Accuracy charts](images/benchmark_accuracy.png)
 
 ## My Results
 
