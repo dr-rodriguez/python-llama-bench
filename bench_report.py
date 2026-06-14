@@ -104,8 +104,8 @@ def donut(passed: int, total: int, size: int = 80) -> str:
     circ = 2 * math.pi * r
     arc = pct * circ
     gap = circ - arc
-    # Color: green ≥80%, amber ≥60%, red otherwise
-    color = "#00d4aa" if pct >= 0.8 else "#f59e0b" if pct >= 0.6 else "#ef4444"
+    # Color: blue ≥88%, green ≥80%, amber ≥60%, red otherwise
+    color = "#3b82f6" if pct >= 0.88 else "#00d4aa" if pct >= 0.8 else "#f59e0b" if pct >= 0.6 else "#ef4444"
     return f"""
 <svg width="{size}" height="{size}" viewBox="0 0 {size} {size}" class="donut">
   <circle cx="{cx}" cy="{cy}" r="{r}" fill="none" stroke="#1e2533" stroke-width="8"/>
